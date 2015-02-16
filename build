@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Copyright 2015 Jonas Schulte-Coerne
+#
+# Licensed under the Creative Commons Attribution-ShareAlike license
+# version 4.0 or later (https://creativecommons.org/licenses/by-sa/4.0/)
+
+
+file=PythonistManifesto
+
+pdflatex -shell-escape $file
+bibtex $file
+pdflatex -shell-escape $file
+pdflatex -shell-escape $file
+
+rm -f $file.aux
+rm -f $file.bbl
+rm -f $file.blg
+rm -f $file.log
+rm -f $file.out
+rm -f $file.toc
+rm Chapters/*.aux
+

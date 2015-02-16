@@ -1,0 +1,201 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright 2015 Jonas Schulte-Coerne                                          %
+%                                                                              %
+% Licensed under the Creative Commons Attribution-ShareAlike license           %
+% version 4.0 or later (https://creativecommons.org/licenses/by-sa/4.0/)       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Software Architecture}
+	\section{Maybe a list of common slogans}
+		TODO\\
+		explain what these slogans mean in practical use (or just remove this section)
+		\begin{itemize}
+			\item Do only one thing and do it well
+			\item Don't program a mathematical function yourself
+			\item If in doubt, leave it out
+			\item Program to an API, not an implementation
+			\item Explicit is better than implicit
+		\end{itemize}
+
+
+	\section{Global state}
+		TODO\\
+		\begin{itemize}
+			\item global constants are good
+			\item global variables are bad
+			\item mutable singletons are bad, since they are global variables
+			\item modules are singletons, so don't change their state. Or don't rely on their state (e.g. the atexit module has to be changed when used).
+			\item IO is usually a global state
+			\item something about testability/provability and functional programming languages. (A function is expected to yield the same results for the same parameters. If it also depends on some global state, this expectation is not met.)
+		\end{itemize}
+
+
+	\section{Mutable vs. Immutable data types}
+		A mutable object is an object, whose data can be modified after the object has been fully initialized.
+		Immutable objects on the other hand get all their data through their constructor and cannot be changed afterwards.\\
+		Since immutable objects cannot be modified, processed versions of those objects have to be stored in new objects.
+		In-place processing of an immutable object is not possible.\\
+		The performance penalty for this is often far lower than expected, so choosing an object to be mutable, that could (or should) be immutable, might only be necessary on systems with extremely tight memory restrictions.
+		Immutability also avoids the necessity to copy the object, each time it is passed to another part of the software, because the object cannot be modified unexpectedly and therefore passing a reference is sufficient.
+		This usually gives tremendous speedups and much lower memory consumption compared to a mutable implementation.
+
+		Generally, an object should be mutable, if the object is defined by its instance, rather than its data.
+		A character in a computer game is still the same character, even after it has been moved to a different position (the position is part of the character object's data).
+		So it is a sensible choice to make the character object mutable.
+
+		If an object is only defined by its data, like for example a signal, it should be implemented as an immutable object.
+		Consider the following example for an explaination why:
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			# mutable
+			loaded_signal = load_file(filename)
+			normalize(loaded_signal)
+			# immutable
+			loaded_signal = load_file(filename)
+			normalized_signal = normalize(loaded_signal)
+		\end{minted}
+		In the implementation, where signals are mutable objects, a signal is loaded from a file and then normalized in-place.
+		This has the result, that the variable {\normalfont \ttfamily loaded\_signal} does not contain the signal that has been loaded from the file, as one would expect because of the name, but the normalized signal.
+		This becomes especially dangerous, when the referene to the signal is passed to different parts of the software.\\
+		In this case, it would be necessary to either copy the signal every time it is passed, or to assume that the signal is never processed.
+		The copying solution costs a lot of memory and the copying is considerably slower than the passing of a reference.
+		Doing without processing the signal will cripple the main functionality of the software (which is most likely signal processing) and if the signal is processed anyways, the poor programmer goes to debugging hell, because the program will not crash where the error has been made by modifying the signal, but at another part, where the signal is referenced.
+		Maybe the program will not even crash, but just compute rubbish data, which is especially malicious, as it entrusts the detection of the error to the user.\\
+		In the immutable implementation, the loaded and the normalized signal are stored in separate variables.
+		And the references to the implementation can be passed to other parts of the software without the danger of unexpected modifications.
+
+		The question of mutability is not only important for the implementation of classes.
+		It must also considered for any other data that is passed through a programming interface, like arguments and return values of functions.
+		So it is always recommended to use tuples instead of lists for such data.
+
+		Returning data by calling a function with a reference to a mutable variable (return-by-call-by-reference) is a peculiar habit, that sprouted in the environment of software written in C.
+		In C, this is the easiest way to return multiple values with one function.
+		Furthermore, the explicit notation of pointers in C made it obvious that the variable would be modified by the function call.\\
+		In Python it is rather convenient to return multiple values with a tuple, while pointers are not exposed to the programmer.
+		So it is absolutely not necessary for a function to have the side effect of modifying one of its parameters.
+		If a mutable object shall be modified, it is cleaner to implement this modification in a method of its class, rather than an external function.
+		This way, the method can encapsulate the implementation of the class, while an external function would rely on exposed internals of the class.
+
+
+	\section{Design Patterns}
+		Design patterns are generic solutions to problems, that occur regularly during the design and implementation of software.
+		A surprising amount of research has been done to investigate the advantages and drawbacks of certain design patterns, so the established design patterns are often faster, easier to maintain and easier to extend than naive implementations.
+		So it is always recommended to know the basic design patterns and to develop a feeling for recognizing, when such a pattern might be applicable.
+
+		\subsection{The Observer Pattern}
+			\label{ObserverPattern}
+			The Observer Pattern is used, when one part of the software needs to retrieve data from another part, but does not know, when this data becomes available.
+
+			Consider the example of a user interface, that wants to show the value of a sensor reading, but does not know, when the sensor is delivering new data.
+
+			A naive solution would be simple polling:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				retrieved = 0.0
+				while not timeout:
+					new_value = sensor_driver.GetSensorReading()
+					if new_value != retrieved:
+						retrieved = new_value
+						user_interface.Update(retrieved)
+			\end{minted}
+			It becomes immediately obvious, that this implementation calls the GetSensorReading-method far too often, which might result in a horrible performance of the software.
+
+			A slightly more sophisticated (but even worse) solution would be to call the user interface's Update-method from the sensor driver.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				def OnNewSensorReading(new_value):
+					"""
+					This function is located in the sensor driver
+					and processes the new value from the sensor.
+					"""
+					user_interface.Update(new_value)
+			\end{minted}
+			Compared to the polling implementation, this implementation reverses the dependencies, by making the sensor driver depend on the user interface, while a user interface could be instantiated without a sensor driver.
+			The advantage of this implementation is, that all necessary information is available in the sensor driver; it knows the value of the sensor reading, it knows the time when the reading changes, and it knows about the user interface, that wants to do something with the sensor value.
+			This way, it is possible to do without polling and the performance penalty that comes with it.\\
+			The drawback of this implementation is that the order of dependencies is now very peculiar and counterintuitive, which will lead to a non-extensible and unmaintainable codebase.
+			The user interface, which has the purpose of displaying sensor results, can now be instantiated without specifying any sensors, which does not make sense, but it is at least not dangerous.
+			A sensor driver, on the other hand, can now only be instantiated with a specified user interface, which leads to an infinte wealth of problems.\\
+			The sensor driver can no longer be instantiated without a user interface, which makes automated testing of the driver almost impossible.
+			If many different sensors are used (which is likely), the update of the user interface has to be implemented in every single one of them.
+			If the user interface changes (which is likely), every single driver has to be adapted to these changes.
+			If the sensor drivers shall be used for a similar software, that writes the sensor readings into a data base instead of displaying it in a user interface, the already available drivers cannot be reused, because they are only for updating a user interface.
+			If the user interface raises an error (which is likely, because testing user interfaces is hard), the crash also affects the sensor driver, which can make debugging a nightmare.\\
+			In essence, this implementation is a clear violation of the ''Do only one thing and do it well''-paradigma.
+			The update of the user interface must not be a responsibility of such a low level part as a sensor driver.
+
+			The Observer Pattern offers a much more elegant solution, that does without polling, but keeps the sensor driver independent of the user interface.
+			This avoids all drawbacks of the aforementioned implementations at the cost of a slightly higher programming effort.\\
+			The idea of the Observer Pattern is, that a part of a software, that wants to be notified about an event (like a new sensor value), passes a callback object to the part of the software, that generates the event.
+			This way, the event generating part has all necessary information to handle the event properly, so polling is not necessary.
+			In addition, the event generating part does not depend on any other parts of the software, as it can just discard the event, if no callback objects are specified.
+
+			The following code shows a rudimentary implementation of the sensor-user-interface-example, that uses the Observer Pattern:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class UserInterface(object):
+					def __init__(self, sensors):
+						for s in sensors:
+							# inform all sensors that the user
+							# interface wants to be notified
+							s.AddObserver(self.Update)
+
+					def Update(self, sensor, sensor_value):
+						print("Sensor %s has new value: %f" % (str(sensor), sensor_value))
+
+				class SensorDriver(object):
+					def __init__(self):
+						self.__observers = []
+				
+					def AddObserver(self, callback):
+						"""
+						Stores the given callback functions
+						"""
+						self.__observers.append(callback)
+
+					def OnNewSensorReading(new_value):
+						"""
+						Is magically called, when a new sensor reading is available
+						"""
+						for o in self.__observers:
+							# notify all interested program parts
+							# by calling every callback object
+							o(self, new_value)
+
+				sensor = SensorDriver()
+				user_interface = UserInterface(sensors=sensor)
+			\end{minted}
+			If many sensor drivers have to be implemented, the programming overhead of the Observer Pattern can be reduced, by sharing the necessary code trough inheritance.
+			The advantages of this implementation become obvious, when the performance, the maintenance and possible extensions are considered:
+			\begin{itemize}
+				\item No polling
+				\item A sensor driver can be instantiated and tested without any observing object
+				\item Adding a new front end (like a data base that stores the sensor data) requires no changes in the sensor drivers' code
+				\item It is even possible to use multiple front ends simultaneously (user interface and data base, maybe even more) without changing the sensor drivers
+			\end{itemize}
+
+			When the observing objects (in the example, this is the user interface) are destroyed, it is necessary to delete the callbacks that have been passed to the AddObserver-method aswell.
+			So it is necessary to implement a RemoveObserver-method aswell.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class SensorDriver(object):
+					...
+					def RemoveObserver(self, callback):
+						self.__observers.remove(callback)
+					...
+			\end{minted}
+			Due to the very dynamic nature of Python, it is necessary to generate new objects from the methods in certain cases.
+			Therefore it is not guaranteed, that different references to the same method (in the example self.Update) link to the same object, which is a mandatory requirement for the lists remove-method (as used in the RemoveObserver-method) to work.
+			This pitfall can be avoided by storing a weak reference to the method and passing that to the AddObserver- and RemoveObserver-methods.
+			It has to be a weak reference, so the automatic deletion of unused objects is not annulled by circular references (more on this in Chapter~\ref{PythonPitfalls} about the common pitfalls when using Python).
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import weakref
+
+				class UserInterface(object):
+					def __init__(self, sensors):
+						self.__update_method = weakref.proxy(self.Update)
+						for s in sensors:
+							s.AddObserver(self.__update_method)
+					...
+			\end{minted}
+
+
+		\subsection{Other Patterns}
+			The Observer Pattern is so cool, you can conquer the world just with that.
+			But still, some more patterns would be helpful, so: TODO
+

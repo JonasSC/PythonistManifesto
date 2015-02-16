@@ -1,0 +1,646 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright 2015 Jonas Schulte-Coerne                                          %
+%                                                                              %
+% Licensed under the Creative Commons Attribution-ShareAlike license           %
+% version 4.0 or later (https://creativecommons.org/licenses/by-sa/4.0/)       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Tipps for the advanced Python-beginner}
+	This manual is aimed at people, who already know the syntax to define a class or a function in Python.
+	With this it is possible to solve most programming problems, so that certain functionalities of Python, that might facilitate this task, are sometimes overlooked.
+	This chapter introduces some of these functionalities.
+
+	\section{Exception handling}
+		Never trust a program, that doesn't crash, when it is about to enter an invalid state!
+
+		Exceptions can be raised, when the program is about to enter a state, which the programmer cannot or does not want to implement.
+		Normally this happens, when invalid or incompatible data is given, like an unparseable string or a division by zero.
+		Another reason to raise an exception is, when the program and its dependencies are not properly set up.
+		This could mean missing libraries or missing configuration files.
+		Sometimes, exceptions are raised because of algorithmic problems, for example when the maximum recursion depth is exceeded.
+		And then there are hardware related exceptions, for when a device is not responding or when the main memory is full.
+
+		Exceptions are not only for stopping the program, before it destroys anything.
+		They are also for facilitating the debug process by giving a hopefully informative error message and by showing where the error occured.
+		Nothing is harder to debug than an error, that happened at a completely different place, than where the exception has been raised.
+		So it is generally a good idea to raise an exception instead of further interpreting the data, as soon as something looks vaguely like an error.
+
+		It is also possible to raise warnings, that do not stop the program.
+		This can be used for example to inform about deprecated features of the program.
+
+		Here is a short list of good practices in raising and handling exceptions:
+		\begin{itemize}
+			\item Do not guess!\\
+			      If choosing the proper action for a given piece of data is not a deterministic and reliable process, raise an error about ambiguous data.
+			      A potentially wrong interpretation of the data will lead to a misbehaving program, where the errors are spotted way further down the processing chain, than the place, where the errors have been made.\\
+			      Also a Complicated maze of conditional expressions, that just interprets some data, is tedious to program, hard to understand and unlikely to be maintained properly.
+			\item Raise meaningful exceptions!\\
+			      In order to facilitate proper exception handling and maybe debugging aswell, do not just raise an {\normalfont \ttfamily Exception}.
+			      Please bother to at least raise a {\normalfont \ttfamily RuntimeError}, if it is not clear, which exception shall be raised.
+			      But if possible, raise a more specific exception like an {\normalfont \ttfamily IOError}, a {\normalfont \ttfamily ValueError}, an {\normalfont \ttfamily IndexError}, a {\normalfont \ttfamily ZeroDivisionError} or a {\normalfont \ttfamily NotImplementedError}.\\
+			      There are many more predefined exceptions listed in the Python documentation.
+			      If they are not specific enough, it is possible to define custom errors by implementing a class that inherits from {\normalfont \ttfamily BaseException}.
+			\item Catch exceptions with precision!\\
+			      Don't just program a general {\normalfont \ttfamily try ... except} block to mute some error message.
+			      Maybe , there are unsuspected exceptions, that are raised inside the {\normalfont \ttfamily try} block, which are then masked, because the {\normalfont \ttfamily try} block just catches any exception.
+			      This again leads to errors, that occur later than when they happen.\\
+			      So at least specify, which type of exception shall be caught, by naming the class in the {\normalfont \ttfamily except} block.
+			      It is possible to catch different types of exceptions, by appending multiple {\normalfont \ttfamily except} blocks to one {\normalfont \ttfamily try} block.\\
+			      One can also get the object of the raised exception by typing ''{\normalfont \ttfamily except EXCEPTION\_CLASS as e}''.
+			      This allows a further disambiguation of the caught exception, for example by parsing its error message, and reraising the exception again, when it shall not be caught.
+		\end{itemize}
+
+
+	\section{Neat modules in Python's standard library}
+		The Python standard library offers some very useful modules, that are often overlooked by programmers, who have just started with Python.
+		Some of these modules are not only targeted for very specific applications, but they are just helpful in general.
+		These modules shall be introduced in this section.
+
+		\subsection{logging}
+			The logging module offers an alternative to using {\normalfont \ttfamily print} for status messages.
+			The advantage of the logging module is, that it offers some functionality for specifying the handling of the status messages without modifying the code that generates the status messages.
+
+			When writing code, that generates a status message, the programmer has to decide, with which log-level the message shall be generated.
+			A reasonable set of log-levels is already implemented in the logging module, but it is also possible to specify custom ones.
+			The already implemented log-levels are {\normalfont \ttfamily DEBUG}, {\normalfont \ttfamily INFO}, {\normalfont \ttfamily WARNING}, {\normalfont \ttfamily ERROR} and {\normalfont \ttfamily CRITICAL}.
+			They can be used with convenient functions from the logging module.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import logging
+				logging.debug("This is a debug message")
+				logging.info("Consider yourself informed")
+				logging.warning("I warned you not to use the print statement")
+				logging.error("Not obeying the rules in Handout is an error")
+				logging.critical("This is a message of critical importance")
+			\end{minted}
+
+			With the logging module it is possible to specify which messages shall be displayed and which shall be skipped.
+			The following line of code sets up, that all debug- and info-messages are dropped, while everything with the priority of a warning and more is displayed.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				logging.getLogger().setLevel(logging.WARNING)
+			\end{minted}
+
+			Furthermore it is easily possible to redirect the logger's output to a file or a widget in a graphical user interface.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				handler = logging.FileHandler("file.log") # writes to a file
+				handler = logging.StreamHandler()         # writes to a stream, like the console
+				                                          # output or a text field in a GUI
+				handler = logging.NullHandler()           # discards everything
+				logging.getLogger().addHandler(handler)
+			\end{minted}
+			Those handlers can be customized with formatters, to specify, which information shall be logged in addition to the log message.
+			This information can be for example the log-level, the file or the line number in which the logging has been invoked.
+
+			It is also possible to create a separate logger for each module.
+			This way, the logging can be customized in a very fine grained way, by specifying a log level for each module individually.
+			All loggers inherit their log-level from the root-logger, so a common use for this is to set the root-Logger to a very high log-level, while switching on the debug messages in one specific module.
+			The following code shows how to create and use a module-specific logger.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import logging
+				# create Logger object
+				logger = logging.getLogger(__name__)
+				# send a logging message
+				logger.info("Hello World")	# "logger" not "logging"
+			\end{minted}
+			The logger object can now be set up independently from the root logger, by specifying a log-level or adding a Handler.
+
+			Please remember that logging is just for sending status messages.
+			It is not an alternative to raising an exception or even giving an exception a meaningful error message.
+
+		\subsection{collections}
+			The collections module defines some interesting classes for data containment.
+			One of them is the {\normalfont \ttfamily OrderedDict}, which behaves like a normal dictionary, but when iterating over its keys, the iteration will be performed in the order in which the items have been added to the {\normalfont \ttfamily OrderedDict}.
+			This is a very convenient mapping type for data, whose order is important.
+
+			Other classes that are provided by the collections module are general abstractions, that can be used with the {\normalfont \ttfamily isinstance} function to check, if an object has a certain functionality.
+			The following code lines test, if the object ''{\normalfont \ttfamily a}'' is iterable or callable:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import collections
+				i = isinstance(a, collections.Iterable) # True, if a is a list,
+				                                        # a tuple, a set, a dict,
+				                                        # or anything else, that
+				                                        # can be iterated in a
+				                                        # for loop.
+				c = isinstance(a, collections.Callable) # True, if a can be called
+				                                        # like a function or a
+				                                        # method.
+			\end{minted}
+			This behavior of {\normalfont \ttfamily isinstance} shows again, that Python uses duck typing (see section~\ref{DuckTyping} for more about this).
+			The compared object's type does not have to have inherited from an iterable class, so {\normalfont \ttfamily isinstance} recognizes it as a subclass of {\normalfont \ttfamily collections.Iterable}.
+			It just has to have the functionality of an iterable object.
+			The behavior is accordingly with {\normalfont \ttfamily collections.Callable}.
+
+		\subsection{functools}
+			The functools module provides functions and decorators to enhance the capabilities of callable objects like functions or methods.
+
+			One interesting function, provided by this module, is {\normalfont \ttfamily partial}.
+			It can be used to create a new function by defining certain arguments from a base function.
+			This technique is sometimes referred to as ''Currying'' or ''Schönfinkeln''\footnote{After its inventors Gottlob Frege, Moses Schönfinkel and Haskell Brooks Curry. So sadly ''Currying'' does not come from ''spicing up a function''.}.
+			An example for using this function could be to create an {\normalfont \ttfamily increase}-function from an {\normalfont \ttfamily add}-function:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import functools
+
+				def add(a, b):	# define an add-function, that adds two values
+					return a + b
+
+				increase = functools.partial(add, b=1)	# this function adds 1 to a
+
+				y = increase(4)	# y = 4+1
+			\end{minted}
+
+			In Python3 there exists a special function {\normalfont \ttfamily functools.partialmethod} for creating methods with a simplified signature:
+			This function is not available in the Python2 version of functools.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class Light(object):
+					def __init__(self):
+						self.__switched_on = False
+
+					def Switch(self, switch_on):
+						self.__switched_on = switch_on
+
+					SwitchOn = functools.partialmethod(Switch, switch_on=True)
+					SwitchOff = functools.partialmethod(Switch, switch_on=False)
+			\end{minted}
+
+			Another useful feature of the functools module is the decorator\footnote{read more about decorators in subsection~\ref{Decorators}.} {\normalfont \ttfamily lru\_cache}.
+			This decorator is also only available in Python3.
+			This decorator can be used to cache return values of a function, so it needs not run again, if it has already run for the given set of arguments.
+			This can save computing time on functions that take a long time to run, but are only called with a small variety of arguments.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import functools
+				import time
+
+				# "maxsize" is the maximum number of cached values. Calling the
+				# function with a new combination of parameters will result in the
+				# deletion of the result for least recently used combination.
+				# "typed" specifies, if the arguments' types shall be considered.
+				# If False, intense_computing(a=1.0, b=2.0) will be mapped to the
+				# same result as intense_computing(a=1, b=2).
+				@functools.lru_cache(maxsize=2, typed=False)
+				def intense_computing(a, b):
+					time.sleep(3)	# simulate some really hard work!
+					return a + b
+
+				v = intense_computing(9.0, 6.0)  # this will do some hard work
+				w = intense_computing(2.3, 4.1)  # this will do some hard work, too
+				x = intense_computing(9, 6)      # this will just use the cached value
+				y = intense_computing(3.5, 7.1)  # this will do some hard work again
+				z = intense_computing(2.3, 4.1)  # this will do some hard work, because
+				                                 # the cached value has been deleted
+				                                 # after the last function call
+			\end{minted}
+
+		\subsection{inspect}
+			The inspect module provides functionalities to get information about objects like functions or classes.
+			For example, it allows retrieving the arguments of a function (including their default values) or it can deliver the inheritance hierarchy of a class.
+			The features of this module are so extensive, that they cannot be discussed in the briefness of this manual.
+			But they are thoroughly explained in the official documentation.
+
+			Object introspection can be cumputationally expensive, so it is advised not to use the inspect functionalities in performance critical code sequences.
+			Most programming tasks can do without it, anyway.\\
+			But in certain situations, the inspect module can be extremely helpful.
+			For example, when serializing an object in order to save it to a file.
+			Or for producing valuable debug information, when raising an error.
+
+
+	\section{Special Python expressions}
+		Python provides some expressions, for which the need is not immediately obvious, since their functionality can be emulated with basic elements of the Python language.
+		Nevertheless, they are extremely helpful for writing cleaner code, that might run faster and is easier to maintain and understand.
+
+		\subsection{with}
+			Certain objects need to be destroyed manually after using them.
+			For example a filestream has to be closed after extracing all necessary information from the file.\\
+			The manual destruction can be tedious, especially when it has to be ensured with {\normalfont \ttfamily try} and {\normalfont \ttfamily finally} blocks.\\
+			So Python allows to specify the initialization and destruction methods {\normalfont \ttfamily \_\_enter\_\_} and {\normalfont \ttfamily \_\_exit\_\_}, which can be invoked with the {\normalfont \ttfamily with} statement.
+			The {\normalfont \ttfamily with} statement creates a block, in which an object can be used.
+			It takes care of calling the {\normalfont \ttfamily \_\_enter\_\_} method when entering the block and of calling the {\normalfont \ttfamily \_\_exit\_\_} method when leaving the block.
+			The {\normalfont \ttfamily \_\_exit\_\_} method is always called, even when an exception is raised.
+
+			The following example shows how to use the {\normalfont \ttfamily with} statement to access a file:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				with open("path_to_file", "r") as f:    # f is the variable name, by
+					for l in f.readlines():             # which the file object can
+						print(l.strip())                # be accessed
+				# no need to call f.close(). "with" will do that.
+			\end{minted}
+
+			To open multiple files, simply separate them with commas in the with statement.
+			In order to avoid overly long lines, a backslash can be used to state that the following line belongs to the current command.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				with open("path_to_file1", "r") as f1,\
+				     open("path_to_file2", "w") as f1,\
+				     open("path_to_file3", "wb") as f3:
+					pass	# do something with the files
+			\end{minted}
+
+		\subsection{yield}
+			{\normalfont \ttfamily yield} is an alternative to the {\normalfont \ttfamily return} statement for functions or methods that return sequences of items.
+			First creating the whole sequence and then returning it can consume a lot of memory, so {\normalfont \ttfamily yield} allows to return the sequence element wise.
+			This way, it is possible to iterate over the return value of a function, while only having the current element in memory.
+			The future elements are not loaded yet and the past elements can be (or have been) discarded.\\
+			The return value of such a function is called a ''generator''.
+
+			The {\normalfont \ttfamily yield} statement is typically located inside a loop.
+			The following example shows a function that returns a list and the equivalent implementation, employing the {\normalfont \ttfamily yield} statement.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				def with_return(maximum):
+					result = []
+					for i in range(maximum + 1):
+						result.append(i)
+					return result
+
+				def with_yield(maximum):
+					for i in range(maximum + 1):
+						yield i
+			\end{minted}
+
+			Since the elements of the returned sequence of a function utilizing the {\normalfont \ttfamily yield} statement are discarded, when advancing to the next element, random access to the sequence's elements is not possible.
+			For accessing the elements randomly, they have to be loaded into the memory by casting the result value into a randomly accessible data type like a tuple or a list.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				a = with_return(maximum)[3]         # this will work
+				b = with_yield(maximum)[3]          # this will crash
+				c = tuple(with_yield(maximum))[3]   # this will work
+			\end{minted}
+
+			Many functions of python return a generator or generator like objects.
+			For example the {\normalfont \ttfamily range} function or the {\normalfont \ttfamily readlines} method of a filestream.
+
+		\subsection{lambda}
+			The {\normalfont \ttfamily lambda} statement allows defining functions like a variable.
+			This functionality is not absolutely necessary, since Python allows to define functions even inside other functions (closures) and the handling of function pointers is easy.
+			However for simple functions, that just calculate a value in one line of code, a brief {\normalfont \ttfamily lambda} statement clutters the code less than the definition of a closure.
+
+			Lambda functions are created by assigning a {\normalfont \ttfamily lambda} statement, which is followed by the function's arguments and its return value, to a variable.
+			The return value is just stated by the formula that calculates it; the {\normalfont \ttfamily return} statement is not issued.
+			The following example shows how to define a lambda function:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				# the usual way:
+				def add(a, b):
+					return a + b
+
+				# with lambda:
+				add = lambda a, b: a + b
+			\end{minted}
+
+
+	\section{Advanced Python tricks}
+		This section introduces some cool aspects of Python, that increase its usability tremendously, although they might not be necessary to accomplish everyday programming tasks.
+
+		\subsection{Features of the interpreter}
+			The Python interpreter makes use of two important environment varibles~\footnote{Environment variables can be set with the commands {\normalfont \ttfamily set} or {\normalfont \ttfamily setx} on Windows and {\normalfont \ttfamily export} on Unix and its derivates.}.
+			\begin{itemize}
+				\item {\normalfont \ttfamily PYTHONPATH} can be used to specify an additional path, in which Python will search for modules, when trying to import something.
+				      The environment variable is usually empty and is used for making libraries available, that are not installed system wide, when executing a specific program that needs them.
+				      This is useful for testing programs or libraries that are still in development.
+				      Usually such programs are started through a Bash/Batch-script, that sets the {\normalfont \ttfamily PYTHONPATH} accordingly before executing the program.\\
+				      {\normalfont \ttfamily PYTHONPATH} can contain multiple paths.
+				      On Windows they are separated by semicolons, on Linux with colons.
+				\item {\normalfont \ttfamily PYTHONSTARTUP} can be used to specify the path to a script, that is executed, when the Python interpreter is started in interactive commandline mode.
+				      This can be used to import modules that are commonly used like {\normalfont \ttfamily math} or {\normalfont \ttfamily os}.\\
+				      The following lines are a startup script, that enables autocompletion for the interactive Python interpreter:
+				      \begin{minted}[gobble=11, tabsize=4]{python}
+				      	import readline
+				      	import rlcompleter
+				      	readline.parse_and_bind("tab: complete")
+				      \end{minted}
+				      It might be necessary to install the readline package before using this script.
+				      When this script has run, hitting the tab-key no longer enters a tab, but it requests the autocompletion.
+				      Hitting tab once extends the currently entered start of a command by the letters of a command that can be determined unambigously.
+				      Hitting tab twice shows a list of all possible extensions to the currently entered start of a command.
+			\end{itemize}
+
+			A program can be started in interactive mode with the commandline parameter {\normalfont \ttfamily -i}.
+			\begin{center}
+				{\normalfont \ttfamily python -i my\_program.py}
+			\end{center}
+			With this, program is run normally and after it has finished, the Python interpreter switches to the interactive command line mode.
+			This can be very useful for debugging, as all global variables, that are instantiated by the program, can then be investigated interactively.\\
+			Of course global variables should have been avoided, so one will rarely start a whole program in interactive mode.
+			But if the software parts are written in a nicely modular way, one can write a script that instantiates the part that shall be debugged, and then run it in order to test that software part interactively.
+
+		\subsection{Decorators}
+			\label{Decorators}
+			Decorators are a special feature of Python to enhance functions, methods and classes with extra functionality.
+			They are functions themselves, that operate with the decorated function as a parameter.
+			To apply a decorator to a function, the decorator is noted with an {\normalfont \ttfamily @} as a prefix.
+
+			The following example shows a decorator that ensures that the return value of a function is never zero.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				def non_zero(function):
+					def new_function(*args, **kwargs):
+						result = function(*args, **kwargs)
+						if result == 0.0:
+							return 1e-12
+						else:
+							return result
+					return new_function
+
+				@non_zero
+				def subtract(a, b):
+					return a - b
+			\end{minted}
+			When interpreting this code, Python will replace the {\normalfont \ttfamily subtract}-function with the return value of {\normalfont \ttfamily non\_zero(subtract)}.
+			This will be the closure {\normalfont \ttfamily new\_function}, whose variable {\normalfont \ttfamily function} is set to {\normalfont \ttfamily subtract}.
+			A function call of {\normalfont \ttfamily subtract} will be replaced like the following:
+			\begin{equation}
+				subtract(a, b) \Rightarrow non\_zero(subtract)(a, b) \Rightarrow new\_function(a, b)
+			\end{equation}
+
+			The decorator separates the securing of a nonzero result from the actual calculation.
+			And it can of course be applied to other functions aswell.
+			This way, decorators can be a very elegant vehicle to comply with the ''Do only one thing, and do it well'' mantra.\\
+			But decorators are often hard to understand, so be careful, not to program in accordance to the Monty-Python slogan ''surprise your friends, amuse your enemies''.
+
+			The function, with which the original function is replaced needs not be created directly by the decorator function.
+			When using a closure, for creating the replacing function, decorators with parameters become possible.
+			The following example shows a decorator that limits a functions return value to a specifiable maximum.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				def limit(maximum):
+					def generator(function):
+						def new_function(*args, **kwargs):	# did you watch Inception?
+							result = function(*args, **kwargs)
+							if result > maximum:
+								return maximum
+							else:
+								return result
+						return new_function
+					return generator
+
+				@limit(5)
+				def add(a, b):
+					return a + b
+			\end{minted}
+
+			A decorator only needs to be a callable object, so decorators with parameters are usually much easier to understand, if they are implemented in form of a class:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class Limit(object):
+					def __init__(self, maximum):
+						self.__maximum = maximum
+						self.__function = None
+
+					def __ReplacementFunction(self, *args, **kwargs):
+						result = self.__function(*args, **kwargs)
+						if result > maximum:
+							return maximum
+						else:
+							return result
+
+					def __call__(self, function):   # defining this makes
+						self.__function = function  # the object callable
+						return self.__ReplacementFunction
+			\end{minted}
+
+			Of course, decorators can be stacked:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				@Limit(5)
+				@non_zero
+				def add(a, b):
+					return a + b
+			\end{minted}
+			In this example, the input function for calling the {\normalfont \ttfamily Limit}-object is the replaced function from the {\normalfont \ttfamily non\_zero}-decorator.
+
+			When decorating a method, the decorators will be called with the unbound methods, since they are executed when creating the class and not an object of that class.
+			Often, when decorating a method, the decorator shall modify a bound method, so it needs information about the object, when it is created.
+			For this, it is possible to define a class with a {\normalfont \ttfamily \_\_get\_\_}-method, which is executed, when the method of an object is accessed.
+			These classes are called ''descriptors''.
+			This method gets the instance and the class as parameters and shall return the replacement function.
+			Be careful when storing a reference to the instance, as this might result in cyclic references (see section~\ref{GarbageCollection} for more on this).
+			The following example shows the usage of a decorator for a method:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class Descriptor(object):
+					def __init__(self, unbound_method):
+						pass
+
+					def __get__(instance, instance_type):
+						def replacement_function(*args, **kwargs): # changes nothing
+							return self.__unbound_method(instance, *args, **kwargs)
+						return replacement_function
+
+				def decorator(method):	# this can be used with @decorator
+					return Descriptor(method)
+			\end{minted}
+			The replacements that are going on in this example are shown below.\\
+			When interpreting the class:
+			\begin{equation}
+				\begin{aligned}
+					            & MyClass.Method\\
+					\Rightarrow & decorator(MyClass.Method)\\
+					\Rightarrow & Descriptor(MyClass.Method)
+				\end{aligned}
+			\end{equation}
+			When calling a method of an object:
+			\begin{equation}
+				\begin{aligned}
+					            & myObject.Method(arg) \\
+					\Rightarrow & Descriptor(MyClass.Method).\_\_get\_\_(myObject, MyClass)(arg) \\
+					\Rightarrow & replacement\_function(arg)
+				\end{aligned}
+			\end{equation}
+
+		\subsection{Profiling}
+			Python has inbuilt capabilities for profiling a Python program.
+			Profiling means, running the program and logging the time, that the interpreter spends on any given command.
+			These logs reveal performance issues and parts, where performance optimizations would be most beneficial.
+
+			The profiling modules can be imported in the software's source code for a very fine grained setup of which commands shall be logged.
+			For more about this, please read the manual page about this subject~\cite{Profiling}, as documenting these extensive capabilities would be beyond the scope of this manual.
+
+			There is also a way of profiling a complete program, without modifying it.
+			This can be done by loading the {\normalfont \ttfamily cProfile} module at the startup of the interpreter, before executing the program.
+			\begin{center}
+				{\normalfont \ttfamily python -m cProfile -o profile\_file my\_program.py}
+			\end{center}
+			In this example, the path where the profiling log is stored is given by {\normalfont \ttfamily -o profile\_file}.
+
+			Profiling can be used to compare the performance of different implementations.
+			For the sake of fairness, the programs, that are to be profiled for this purpose, must only differ in that implementation.
+			This also includes, that the programs have to be deterministic, which means:
+			\begin{itemize}
+				\item no user interaction
+				\item no random numbers, that are not seeded to be equal in both programs
+				\item no interaction with hardware, whose performance might vary a lot (e.g. network communication).
+			\end{itemize}
+
+			The profiling logs can then be evaluated in a Python script with the help of the {\normalfont \ttfamily pstats} module.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import pstats
+
+				# load the profiling log file
+				p_loaded = pstats.Stats("profile_file")
+				# sort by the time spent in the given function
+				p_sorted = p_loaded.sort_stats("time")
+				# print information about the 20 functions that used the most time
+				p_sorted.print_stats(20)
+			\end{minted}
+			In this example, the functions are sorted by the time that has actually been spend in that function.
+			When a function called another function, only the time of calling the other function is added to the first function's time.
+			If the runtime of the other function shall also be added to the time of the calling function, the profile must be sorted by the cumulative time.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				...
+				p_sorted = p_loaded.sort_stats("cumulative")
+				...
+			\end{minted}
+
+
+	\section{Differences between Python2 and Python3}
+		Programming in Python2 and Python3 is very similar.
+		The differences are mainly details and the underlying C implementation.
+		This is the reason, why many libraries for Python2 have not been ported to Python3, yet.\\
+		It is however possible to write Python code that runs with both Python2 and Python3.
+		This section shall give an overview about the main differences and how to achieve compatibility with both versions.
+
+		\subsection{print}
+			Probably the most obvious difference between the two versions is, that {\normalfont \ttfamily print} is a function in Python3.
+			Of couse typing the additional parentheses is annoying, but this is also a much cleaner programming interface, which can be advantagous in many situations.
+			For example a pointer to the {\normalfont \ttfamily print} function can be passed as a handler, that specifies what to do with some data.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				def do_something(function, data):
+					return function(data)
+
+				do_something(function=print, data=(1, 2, 3))
+			\end{minted}
+
+			In order to use the function version of {\normalfont \ttfamily print} in Python2, one has to import it from (the) {\normalfont \ttfamily \_\_future\_\_}.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				from __future__ import print_function
+				print("Hello World")
+			\end{minted}
+			Imports of {\normalfont \ttfamily \_\_future\_\_} features, that have been backported to Python2, are ignored in Python3, so that code which uses them, runs with both versions.
+
+		\subsection{Imports}
+			\label{Imports}
+			Python3 tries to distiguish more between modules, that have been installed in some system directory and modules that are part of the software's source code.
+			This is similar to the {\normalfont \ttfamily \#include} statement in C/C++, where {\normalfont \ttfamily \#include~''header.h''} specifies, that the header file shall be included from the local source code, while {\normalfont \ttfamily \#include~\textlangle header.h\textrangle} includes a system wide installed header.
+			In this context, ''system wide'' means everything, that can be found through {\normalfont \ttfamily sys.path}, so even self written and locally installed libraries are considered to be installed ''system wide'' here.
+			Since the working path, in which the Python interpreter has been started (independent of later calls of {\normalfont \ttfamily os.chdir}), can also be found through {\normalfont \ttfamily sys.path}, the modules in this path are also handled as if they were installed system wide.
+
+			In Python2 all modules are being directly imported by importing their name, while in Python3, local modules are imported through the modules ''.'' and ''..''.
+			System wide installed libraries are still imported by their name in Python3.\\
+			Maybe an example can illustrate these confusing sentences.
+			Assuming, one wants to import the function {\normalfont \ttfamily helperfunction} from the module {\normalfont \ttfamily helper}, which is defined in the file ''helper.py'' in the current working directory, the following lines would be used to import this function.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				# import a system wide library (works the same way with both versions)
+				import os
+
+				# Python2
+				# import a module into its own namespace
+				import helper
+				# import a function into the local namespace
+				from helper import helperfunction
+
+				#Python3
+				# import a module into its own namespace
+				from . import helper
+				# import a function into the local namespace
+				from .helper import helperfunction
+			\end{minted}
+
+			The Python3 way of importing modules has some advantages.
+			\begin{itemize}
+				\item Python can now distinguish between local and system wide modules with the same name.
+				\item It is possible to import modules that are in the parent directory of the current module (with {\normalfont \ttfamily from .. import module})
+				\item It also works with Python2.7, so it is advised to use it for portable code.
+			\end{itemize}
+
+		\subsection{String / Unicode}
+			In Python2, strings are usually ascii strings, while prepending a {\normalfont \ttfamily u} before the quotes defines, that the string shall be encoded as unicode (e.g. {\normalfont \ttfamily u''Hello~World''}).
+			Python3 on the other hand always uses unicode.
+
+			Due to its fixation on unicode, Python3 can do without some functions, that are available in Python2.
+			These are among others the {\normalfont \ttfamily unicode} function, that is used to cast objects into unicode strings, and the {\normalfont \ttfamily BaseString} class, that is used to check, if a variable is a (unicode) string, with {\normalfont \ttfamily isinstance}.
+			These have to be avoided, when writing code, that shall run with both versions.\\
+			Also note, that the {\normalfont \ttfamily str} function behaves differently, as its Python2 variant converts its parameter to ascii, while in Python3 it is converted to unicode.
+			This can be utilized for portable code, where an object shall be casted to the most common string format in the respective version of Python.
+
+			Furthermore, Python3 is rather picky about its input.
+			For example, when reading a text file, one has to specify the file encoding, when opening the file, if it is not unicode:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				with open("file.txt", "r", encoding="ISO-8859-15") as f:
+					# do something with the file
+			\end{minted}
+			In Python2, the {\normalfont \ttfamily open} function does not accept an {\normalfont \ttfamily encoding} parameter, so it is not possible to open a non-unicode file with the same line of code in both versions of Python.
+			Since it is hard write the {\normalfont \ttfamily with} line in a conditional way, that depends on the Python version, without duplicating the code inside the {\normalfont \ttfamily with} block, it might be best, to create the parameters for the {\normalfont \ttfamily open} function inside an {\normalfont \ttfamily if} block.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import sys
+
+				kwargs = {}
+				if sys.version_info.major >= 3:
+					kwargs["encoding"] = "ISO-8859-15"
+				with open("file.txt", "r", **kwargs) as f:
+					for line in f:
+						if sys.version_info.major <= 2:
+							line = line.decode("ISO-8859-15")
+						# do something with the lines of the file
+			\end{minted}
+
+			If the encoding is not specified for a non-unicode file, Python3 crashes, while Python2 only reads peculiar special characters from non-ascii files.
+			Actually Python3's behavior is a good thing, because it crashes, where the error happens.
+			Python2 masks the error by going on, until the string is interpreted somewhere.
+
+		\subsection{Integer divisions}
+			This difference between Python2 and Python3 deserves special attention, as it is unlikely to lead to a crash, but it can easily lead to unintended calculation results.\\
+			In Python3, the normal division with ''/'' is always a floating point division, while in Python2, dividing two integers performs an integer division, which discards the remainder.
+			The following code gives an example for this:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				a = 10.0 / 4.0 # 2.5 in both versions (as expected)
+				a = 10 / 4     # 2 in Python2, 2.5 in Python3
+				a = 10 / 2     # 5 in Python2, 5.0 in Python3 (a float although both
+				               #                               operands are integers
+				               #                               and the remainder is 0)
+			\end{minted}
+
+			In both versions of Python the ''//'' operator is used for divisions, that discards the remainder of the division.
+			If both operands are integers, using this operator also returns an integer.
+			So in order to write code that is portable between the two versions, use ''//'' to perform an integer division.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				a = 10.0 // 4.0  # 2.0 in both versions
+				a = 10 // 4      # 2 in both versions
+			\end{minted}
+
+
+	\section{Coding style}
+		This is the point, where this manual becomes inconsistent.
+		Although it proudly claims on its title page, that it aims to abolish a totalitarian regime, it promotes the usage of a programming language that is pretty totalitarian about its syntax.\\
+		While truly libertarian languages like Perl execute anything from latin up to a demonic mixture of special characters and burnt out brain cells, Python has adopted the idea, that there should be only one solution for each problem.
+		Because of this, it imposes many restrictions how the code has to be written (e.g. its strict indentation rules).\\
+		The reason to choose such a strict syntax specification for Python becomes clear, when thinking about the main benefit of a totalitarian system:
+		Even stupid people understand, what's going on.
+		So reading and understanding a piece of Python source code, that someone else has written, is most of the times reasonably simple.
+		The art is to achieve this simplicity, without oppressing programmer in his way to think, talk, act and, of course, design a program.
+		And Python practices this art rather admirably.
+
+		Even Python did not dare to impose a fully unified coding style on the programmer, which means that certain code constructions can be written in different ways.
+		Some best practices for programming in Python are compiled in PEP8~\cite{PEP8}.\\
+		The reasons for most of the recommendations in PEP8 are thoroughly explained, so it is best to follow them.
+		Other recommendations are just a matter of taste.
+		Since many other projects are programmed in compliance with PEP8, it is good to follow these recommendations aswell, just for the sake of a recognizable programming style.
+
+		But there are two issues, in which this manual recommends a different coding style than PEP8:
+		\begin{itemize}
+			\item Feel free to exceed a line length of 79 characters, if it improves the readability of the code.\\
+			      Since many programmers no longer use command line editors on small screens with a small resolution, the 79 character limit seems a bit strict and old fashioned.
+			      It is still a good guideline to split a function call or a string to multiple lines, when it exceeds this threshold, but in some cases (like heavily indented blocks), a relaxed adherence to the 79 character rule can significantly improve the readability of the code.
+			\item Please use tabs for indentation!\\
+			      With a tab, the indentation is only one character per level, which is easy to maintain.
+			      When manually indenting or unindenting code with whitespaces, it happens easily, that one whitespace is forgotten or too much.
+			      This mistake cannot be discovered as easily as with tabs, where one character is much wider.
+			      Since Python uses the indentation level for assigning code to code blocks, an indentation mistake will break the program.\\
+			      Furthermore most editors allow specifying the width of a tab in their settings.
+			      This way, each programmer can decide independently, how steeply the indentation shall be displayed.
+		\end{itemize}
+
+		This manual even recommends using tabs for indentation and whitespaces for aligning code, which can result in a mixture of tabs and spaces at the beginning of a line of code.
+		PEP8 will probably not agree with this, but this case is not mentioned there.\\
+		The following code gives an example, how this is meant (the arrows and u-shaped-thingys are tabs and spaces):
+		\begin{minted}[gobble=3, tabsize=4, showspaces, showtabs]{python}
+			def my_function(with_many_arguments,
+			                that_are_split,
+			                into_multiple_lines):
+				x = (with_many_arguments,
+				     123,
+				     456)
+		\end{minted}
+		In this example, the indentation is done with tabs, while the alignment of the function arguments of {\normalfont \ttfamily my\_function} and the tuple elements of {\normalfont \ttfamily x} are aligned with spaces.
+		There are two advantages of the alignment with spaces.
+		First, a perfect alignment is always possible, while with tabs, the alignment can only be done in coarse steps.
+		And second, the alignment becomes independent of how wide a tab is set to be in the respective editor.
+

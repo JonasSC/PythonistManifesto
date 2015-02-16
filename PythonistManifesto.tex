@@ -1,0 +1,135 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright 2015 Jonas Schulte-Coerne                                          %
+%                                                                              %
+% Licensed under the Creative Commons Attribution-ShareAlike license           %
+% version 4.0 or later (https://creativecommons.org/licenses/by-sa/4.0/)       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% General information                                                          %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\maintitle}{The Pythonist Manifesto}
+\newcommand{\subheading}{About the revolutionary project of Pythonism to abolish the totalitarian regime of inappropriate programming languages and techniques}
+\newcommand{\authors}{Jonas Schulte-Coerne}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preferences for the layout                                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass[
+	paper			= A4,						% paper format
+	fontsize		= 12pt,						% font size
+	BCOR			= 20mm,						% binding correction
+	DIV				= 15,						% print space
+	parskip			= full,						% paragraph formatting
+	headsepline		= true,						% separator under page header
+	footsepline		= true,						% separator over page footer
+	headinclude		= true,						% page header belongs to page text
+	footinclude		= false,					% page footer belongs to page text
+	index			= totoc,					% index in table of contents
+	listof			= totoc,					% show picture and table list in the table of contents
+	bibliography	= totoc,					% show bibliography in table of contents
+	cleardoublepage	= empty,					% page header and footer on empty pages
+	draft			= false,					% draft mode
+]
+{scrbook}										% KOMA script class
+
+\pagestyle{headings}							% running title
+\setkomafont{pagehead}{\sffamily}				% font in page header
+\setkomafont{pagenumber}{\sffamily}				% font in page footer
+\addtokomafont{captionlabel}{\small\bfseries}	% font in picture label
+\addtokomafont{caption}{\small}					% font in picture caption
+\setcapindent{2em}								% indentation of picture caption
+\delimitershortfall = -0.1pt					% increase size of outer parentheses
+
+\usepackage[utf8]{inputenc}						% utf-8 support
+\usepackage[T1]{fontenc}						% use T1 coding
+\usepackage{lmodern}							% use Latin Modern font
+\usepackage{microtype}							% margin alignment
+\usepackage{textcomp}							% extended character set
+\renewcommand{\labelitemi}{$ \triangleright $}	% bullet point
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% additional packets                                                           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{graphicx}
+\usepackage[fleqn]{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{subfig}
+\usepackage{colortbl}
+\usepackage{pdfpages}
+\usepackage{minted}
+\usemintedstyle{tango}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% preferences for pdf generation                                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{hyperref}
+\hypersetup{
+	pdflang				= {en},								% language
+	pdfauthor			= {\authors},						% author
+	pdftitle			= {\maintitle},						% title
+	pdfsubject			= {\subheading},					% topic
+	pdfstartview		= {Fit},							% view when opened
+	pdfduplex			= {DuplexFlipLongEdge},				% duplex printing
+	pdfprintscaling		= {None},							% output scaling
+	pdfpagemode			= {UseOutlines},					% show table of contents
+	colorlinks			= {false},							% color instead of frames around hyperlinks
+	urlbordercolor		= {blue},							% color for urls
+	bookmarksnumbered	= {true},							% chapter number in bookmarks
+	bookmarksopen		= {true},							% expand bookmarks
+	bookmarksopenlevel	= {1},								% bookmark expansion level
+	pdfcreator			= {LaTeX},							% generator program
+}
+\usepackage[all]{hypcap}									% links directly to images
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% title page                                                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{\Huge \maintitle \vspace{10mm}}
+\subtitle{\Large \subheading \vspace{15mm}}
+\author{
+	\textsf{\textbf{\authors}}
+	\vspace{15mm}\\
+	\normalsize Licensed under the Creative Commons Attribution-ShareAlike\\
+	\normalsize  license version 4.0 or later~\cite{License}
+	\vspace{25mm}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Content                                                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+	\frontmatter
+		\pdfbookmark[1]{Title Page}{title page}
+		\maketitle
+		\enlargethispage{100\baselineskip}
+
+	\mainmatter
+		\tableofcontents
+
+		% include chapter files
+		\include{Chapters/SoftwareArchitecture}
+		\include{Chapters/PythonTipps}
+		\include{Chapters/PythonPitfalls}
+		\include{Chapters/SoftwareTools}
+
+		\bibliographystyle{plaindin}	% DIN 1505
+		\bibliography{literature}
+		\nocite{*}
+
+\end{document}
+

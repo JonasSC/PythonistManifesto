@@ -1,0 +1,273 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright 2015 Jonas Schulte-Coerne                                          %
+%                                                                              %
+% Licensed under the Creative Commons Attribution-ShareAlike license           %
+% version 4.0 or later (https://creativecommons.org/licenses/by-sa/4.0/)       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Python Pitfalls}
+	\label{PythonPitfalls}
+	Python is a very good programming language, but it still has some quirks, that one has to know about, when debugging a Python program.
+	This chapter shall explain some Python specifics, which might behave in an unexpected manner for some programmers.
+
+	\section{Python's object model}
+		\subsection{Imports}
+			Importing modules works slightly differently in Python compared to C/C++, as the specification of an imported module is not done by its file path (like when including a C/C++-header), but by its module path.
+			Since most folders and files, that contain Python source code, are also modules, the file path and the module path are mostly equivalent.
+			Consider an example, where folder ''a'' is a module, that contains another file or folder, that defines module ''b''.
+			''a'' is in the working directory of the Python interpreter, so it can be imported directly.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import a    # a can be imported directly
+				import a.b  # b can be imported through a
+			\end{minted}
+			In this example, the similarity between file and module paths becomes obvious, as they only differ in the fact, that file paths are concatenated with a file delimiter like ''/'' or ''\textbackslash'', while module paths use a ''.'' for accessing the properties of the module objects.
+			But in module paths, it is not possible to access parent modules, like in file paths with the ''..'' folder name.
+			Python3 offers a ''..'' module to access the direct parent module, but it cannot be concatenated to access that module's parent module.
+
+			It is generally recommended to do without accessing the parent module, as this practice avoids circular dependencies, where one module depends on another, which in turn depends on the first.
+			While this works well with modules, that act as software libraries, it can be counter intuitive when it comes to inheritance, as it is not recommended to sort subclasses into subfolders, because this would require to access the subfolders' parent folder.
+
+			Folders can be made to a Python module, by implementing an \_\_init\_\_.py file inside them, which is executed when importing the module.
+			After importing a folder's module, all py-files inside the folder are accessible as submodules.
+			In order to avoid inconveniently long module paths, where every object is loaded from its own submodule, the \_\_init\_\_.py file can be used to import objects into the module's namespace.
+			When such an imported object has the same name as a py-file, the module's property that can be accessed through the given name, becomes ambiguous, as it is not clear, if the submodule or the imported object is meant.\\
+			This hazard has to be avoided by naming conventions.
+			This manual recommends to write all source code filenames and folder names in lower case letters, while using CamelCase\footnote{words are separated by capital letters. The first letter is a capital letter.} for class names.
+			In most cases, function names are defined in lower case letters as well, which can clash with the lower case file names.
+			So it must be avoided, that a file name has the same name as a function, for example by combining multiple functions in one file and choosing a meaningful name for the group of functions as the file name.
+			For very small functions (and very, very small numbers of functions), it might even be okay to define them in the \_\_init\_\_.py file.
+
+			If two or more modules import each other, it is impossible, that each one of these modules is imported completely, before continuing with importing the other modules.
+			This means, that during the import, these circularly dependent modules cannot provide their full functionality.\\
+			Circular module dependencies are not a problem in Python, as long as the functionalities from the other module are not required during the import.
+			This is the case, when the functionalities are only used inside functions or methods, that are not executed, when importing the modules.
+			But certain functionalities like base classes for inheritance or decorators have to be available, when importing a module, in which case circular dependencies can lead to serious problems.\\
+			Generally circular dependencies are an indication for bad library design, so if they occur it is strongly recommended to consider refactoring the source code.
+
+			Section~\ref{Imports} presents some further details about the differences between the import systems of Python2 and Python3.
+
+		\subsection{Methods}
+			Python's model of methods is similar to the one of C++.
+			In both languages, a method is basically a function, which gets the context of its instance as the first argument.
+			This argument is a pointer, that is needed to access the properties of the object from within the method.
+			In C++ the first argument is declared implicitly, so the {\normalfont \ttfamily this}-pointer has not to be declared when implementing the method.
+			Python, being faithful to its slogan ''explicit is better than implicit'', demands that the {\normalfont \ttfamily self}-argument is declared explicitly in the method declaration.
+
+			The explicit statement of the {\normalfont \ttfamily self} argument makes sense, because during declaration, the method is still ''unbound'', which means that the method is still a function without knowledge about any object.
+			When accessing the method of an object, a ''bound'' method is created, by using the unbound method as a template and setting the {\normalfont \ttfamily self}-argument to a pointer to the object.
+			This is the reason, why the {\normalfont \ttfamily self}-argument has not to be passed, when calling a method.
+
+			Bound methods are created on the fly and they are stored only in rare cases (see section~\ref{GarbageCollection} for more background on this).
+			So comparing a method with itself for equality might fail, because the bound method objects are not the same instances.
+
+		\subsection{Public and private properties}
+			Python does not really have a concept of private or protected properties.
+			But it is general consensus, that variables, functions or methods, whose name starts with an underscore, are considered as part of an internal implementation detail.
+			This way, one can discourage the access of a "to be protected"-property from outside code, by giving it a name that starts with an underscore.
+
+			When the name of a property starts with two underscores, the property is considered private.
+			At runtime, this property is given a different name to avoid unwanted side effects, when a derrived class has a property with the same name.
+			This way, private objects are a bit harder to access from outside code, but this is only ''security by obscurity'' and not meant to be a proper protection.
+
+			The underscore naming convention is only for notifying a programmer, that accessing certain properties from outside code is a weird and strongly discouraged idea.
+			If she/he wants to do so anyway, who is Python to judge her/him?
+
+		\subsection{Duck typing}
+			\label{DuckTyping}
+			Python is not statically typed.
+			So, the only thing, that matters when accessing a property of an object, is, if the object has that property.
+			It is unimportant, how and where this property is implemented and how the object got it.
+			This model is called duck-typing\footnote{from a poem of James Whitcomb Riley: ''When I see a bird that walks like a duck and swims like a duck and quacks like a duck, I call that bird a duck.''}.
+
+			It is even possible to extend certain objects, by assigning a value to a property that has not been there before.
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				# define a class
+				class MyClass(object):
+					pass
+
+				# create an object of this class
+				obj = MyClass()
+
+				# extend this object
+				obj.x = 42
+			\end{minted}
+			This only works for pure Python objects.
+			Objects whose classes are implemented in other programming languages (e.g. instances of {\normalfont \ttfamily str}) cannot be dynamically extended.
+
+			The duck typing of Python seems to work inconsistently, when it comes to the function {\normalfont \ttfamily isinstance}.
+			In most cases, the {\normalfont \ttfamily isinstance} function looks into the inheritance graph of an object, instead of comparing the functionality, that is provided by the object, as it would be done when performing duck typing.
+			So an object is not considered an instance of a class, even if it has the same methods, as long as the class of the object is not a subclass of the given class:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				class A(object):
+					def Method(self):
+						pass
+
+				class B(object):
+					def Method(self):
+						pass
+
+				a = A()
+				print(isinstance(a, B))	# False, althogh classes A and B are equal
+			\end{minted}
+			On the other hand, the {\normalfont \ttfamily collections} module offers classes, for which {\normalfont \ttfamily isinstance} checks for a certain functionality, so it can return {\normalfont \ttfamily True} even if the object is not an instance of a subclass of the considered class:
+			\begin{minted}[gobble=4, tabsize=4]{python}
+				import collections
+
+				class C(object):
+					def __call__(self):
+						pass
+
+				c = C()
+				print(isinstance(c, collections.Callable))  # True, although C is
+				                                            # not a subclass of
+				                                            # collections.Callable
+			\end{minted}
+
+		\subsection{Multiple inheritance}
+			Python supports classes that inherit from multiple different base classes.
+			Implementing such a class is fairly straight forward, as the constructors of the base classes have to be called explicitly in the constructor of the derived class.
+			This is much more intuitive than the implicit order, in which the constuctors of the base classes are called in C++.
+
+			Implementing a multi-inheritance class without a constructor is strongly discouraged, because this would implicitly call only the constructor of the first base class.
+			If several base classes implement the same method, the respective method of the derived class will be inherited from the first class, that implements this method.
+
+			In Python it is recommended, that classes inherit either from {\normalfont \ttfamily object} or from a class that is derived from {\normalfont \ttfamily object}.
+			Critically considered, one might note that multi-inheritance would lead to circular inheritance (the object oriented paraphrase for incest), as all base classes inherit from {\normalfont \ttfamily object}.
+			Mercifully, Python has the decency, not to communicate its moral judgement about objects with interconnected ancestry, so this does not raise an error.\\
+			But again, this only works for certain classes (probably for {\normalfont \ttfamily object} and for classes with a pure Python implementation).
+			For Example, inheriting from multiple derived classes of {\normalfont \ttfamily str} raises an error.
+
+		\subsection{The \_\_del\_\_ method}
+			When defining a class, it is possible to define a {\normalfont \ttfamily \_\_del\_\_} method, which is called, when an object of that class is being deleted.
+			This must not be confused with a destructor, which is called to tear down an object before its deletion.
+
+			Generally it is not necessary to implement the {\normalfont \ttfamily \_\_del\_\_} method.
+			It is even discouraged, as it comes with some drawbacks.
+			For example, when dealing with circular references, an explicit call of the garbage collector can find such unused objects and delete them.
+			However, if more than one of the objects, that reference each other, has implemented a {\normalfont \ttfamily \_\_del\_\_} method, the order, in which the objects are deleted, can be relevant.
+			Since the garbage collector cannot know this order, the objects are not deleted automatically.
+
+			The {\normalfont \ttfamily \_\_del\_\_} method is called, when the reference count of an object reached zero.
+			Therefore it is mandatory, that the method does not create any new references to the object.
+			So passing the {\normalfont \ttfamily self} reference to another code object is forbidden, since this would make it impossible to delete the object.\\
+			An example for such an errant endeavor, would be to pass the {\normalfont \ttfamily self} reference to a logging framework (or print), to log that the object has been deleted.
+
+
+	\section{Object References and Garbage Collection}
+		\label{GarbageCollection}
+		Python uses reference counting to detect, if an object is still in use or if it can be deleted.
+		The idea behind that is very simple:
+		Everytime, a new reference to an object is created, the object's reference counter is increased and everytime, a reference is deleted (e.g. because the reference was used in the local namespace of a function that has returned), the reference counter is decreased.
+		When the reference counter is zero, the object cannot be accesed from within active code, so the object can be deleted safely.
+
+		Problems arise with circular references.
+		This happens when one object holds a reference to another object, which again holds a reference to the first object.
+		Even if none of these two objects is reachable from within active code, their reference counters will not reach zero, because they hold references to each other.\\
+		In this case, Python's garbage collector has to be run, which detects unreachable objects and deletes them.
+		Garbage collection can be a very complex task, that interferes with a program's performance.
+		So it is advisable to avoid circular references in order to reduce the number of times, that the garbage collector has to be run.
+
+		Invoking the garbage collector with the command {\normalfont \ttfamily gc.collect()} returns the number of deleted objects.
+		If this number is not zero, it shows that the implementation contains circular references and maybe a memory leak.
+		So showing this number in a debug message might help increasing the performance and stability of the program.\\
+		If the number of deleted objects is always zero, the invokation of the garbage collector can of course be omitted.
+
+		Python has a module called {\normalfont \ttfamily weakref}, which can be used to create weak references that do not affect an object's reference counter.
+		When using a weak reference, it is not assured, that the reference is still valid, as the object could have been deleted.
+		But since weak references cannot be used to keep unreachable objects alive, replacing an ordinary (strong) reference with a weak one can break circular references.
+
+		A classical case of circular references are methods.
+		An instance has a reference to each of its methods, so the methods can be invoked through the object itself.
+		Also each method has a reference to the instance, so they can access the object's data.\\
+		It is not possible to break these reference circles with weak references.
+		If the references to the methods were weak ones, the method's reference counts would always be zero, which meant, that they would be deleted immediately.
+		Replacing the method's reference to the instance with a weak reference, would forbid the invokation of a method without storing a reference to the object.
+		This is shown in the following example:
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			class MyClass(object):
+				def MyMethod(self):
+					print(self)
+					return 28
+
+			# this would work if the method's reference to
+			# the instance (self) was a weak reference:
+			myObject = MyClass()
+			retval = myObject.MyMethod()
+
+			#this would not work:
+			retval = MyClass().MyMethod()
+		\end{minted}
+		In the first call of {\normalfont \ttfamily MyMethod}, the reference count of the instance of {\normalfont \ttfamily MyClass} is one, because it is stored in {\normalfont \ttfamily myObject}.\\
+		In the second call however, the instance is not stored, so the only reference to it is in the method.
+		If this reference were a weak one, the object would be deleted before the method is executed and therefore the method call would crash.
+
+		Python avoids the problem of circular references, that comes with objects and their methods, by creating the method objects on the fly.
+		For this, it distinguishes between unbound and bound methods.
+		Unbound methods are properties of a class and basically functions, which expect an object as a first parameter {\normalfont \ttfamily self}.
+		When retrieving a method of an object, a bound method is created by predefining the {\normalfont \ttfamily self} parameter of the unbound method with the object itself.\\
+		During a normal method call, the reference to the bound method is not stored anywhere, so that it is deleted after the method call has terminated.
+		This way, circular references are avoided.
+		But also comparing a method with itself for equality might return {\normalfont \ttfamily False}, because the two bound methods are not the same object.\\
+		In certain situations, a reference to a bound method is stored in a variable (for example in some implementations of the Observer Pattern, like in section~\ref{ObserverPattern}).
+		Here special care must be taken to avoid memory leaks.
+
+
+	\section{Threading, Multiprocessing, the GIL and GUIs}
+		Python's threading module offers an easy way to split the program's execution into multiple threads, that run in parallel.
+		It is very fast and simple to share even large amounts of data between the threads.\\
+		But this simplicity comes at a cost.
+		In many cases, the Global Interpreter Lock (GIL) interrupts all other threads, when one thread is accessing shared data.
+		This is necessary to ensure the consistency of the data and for automated deletion of unused objects.
+		Since most data can be shared, this locking happens on a very regular basis, which degrades the theoretically parallel threads to a timeslot execution, that does not take advantage of the capabilities of modern multiprocessor computers.\\
+		A lot of research is being done on how to avoid the necessity of this global locking, so with newer versions of Python, the efficiency of multithreaded software tends to increase.
+
+		Libraries for graphical user interfaces like Qt or wxPython expect that all executions of routines, that affect the graphical display, are issued from within the same thread.
+		Accessing the graphical user interface from within different threads is likely to cause the program to crash, but that is not ensured.
+		Even an implementation that executes cleanly once can crash on another occasion.
+		This unpredictable behaviour makes debugging extremely difficult, so it is best to avoid the multithreaded rendering of a graphical user interface.\\
+		In wxPython the wx.CallAfter method runs a given function from inside the user interface's event loop, which can be used to ensure, that this function is run in the correct thread.
+		In Qt the event loop is not as exposed to the programmer as in wxPython, so there a different approach is required\footnote{e.g. https://stackoverflow.com/questions/10991991/pyside-easier-way-of-updating-gui-from-another-thread}.
+
+		External libraries, especially those written in compiled languages like C, often implement their own memory management and can therefore release the Global Interpreter Lock during their calculations.
+		This way, many calls of external library functions can be executed in parallel to another Python thread.
+
+		To make use of the hardware of modern multiprocessor computers, the multiprocessing module provides capabilities for starting a new Python process, that works on its own memory space.
+		As the usual data objects are not shared between processes, the Global Interpreter Lock is not necessary to ensure the consistency of these objects, which allows more of the processes to run in parallel.
+		The API of the multiprocessing module is very similar to that of the threading module.
+
+		The drawback of multiprocessing is that sharing data between processes is much more difficult than between threads.
+		It is not possible to just access a variable from within another process.
+		Instead, an object has either to be serialized and sent to the process as a message, or the object has to be written into a shared part of the memory.
+		Both the message passing and the shared memory require copying the data, which can be very slow on large data objects.\\
+		Furthermore, there are certain requirements, which a shared object has to meet.
+		The shared memory is statically typed, with a limited set of available types, so for exchanging an object over shared memory, it must be possible to convert the object's data into a format that is supported by the shared memory.
+		For sharing an object with message passing, it must be possible to serialize the object, which is sometimes not possible.
+		Especially function pointers are often impossible to serialize, as the function itself is not exchanged and therefore has to be available in the other process.
+
+		For sending a function pointer to another process, the referred function has to be available, when the program is imported as a module.
+		The following code shows an example program with some shareable functions and some, whose pointer cannot be serialized.
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			from some_module import function1
+			
+			def function2(arguments):
+				def function3(other_arguments):
+					pass
+				pass
+			
+			if __name__ == "__main__":
+			
+				from some_other_module import function4
+
+				def function5(completely_different_arguments):
+					pass
+		\end{minted}
+		\begin{itemize}
+			\item A pointer to {\normalfont \ttfamily function1} can be shared. (Given that program is written to the file main.py. Then it would be possible to write {\normalfont \ttfamily import main} and {\normalfont \ttfamily main.function1()}.)
+			\item A pointer to {\normalfont \ttfamily function2} can be shared for the same reasons as for {\normalfont \ttfamily function1}.
+			\item A pointer to {\normalfont \ttfamily function3} cannot be shared, as {\normalfont \ttfamily function3} is only defined in the context of {\normalfont \ttfamily function2}. A new process would import {\normalfont \ttfamily main}, but it would obviously not run {\normalfont \ttfamily function2} to get a definition of {\normalfont \ttfamily function3}.
+			\item A pointer to {\normalfont \ttfamily function4} can only be shared, if {\normalfont \ttfamily some\_other\_module}  is imported somewhere else in the source code, because everything inside the [{\normalfont \ttfamily if \_\_name\_\_ == ''\_\_main\_\_''}]-block is only run, when the Python file is run as the main process and not when it is imported as a module.
+			\item A pointer to {\normalfont \ttfamily function5} cannot be shared, because it is only defined inside the [{\normalfont \ttfamily if~\_\_name\_\_~==~''\_\_main\_\_''}]-block
+		\end{itemize}
+
+		In POSIX compliant operating systems, that implement the fork()-command, the objects that are passed to another process through its constructor are copied with the fork()-command and therefore need not to be serializable.
+
