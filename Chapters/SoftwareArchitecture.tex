@@ -6,6 +6,43 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Software Architecture}
+	\section{The right attitude towards programming}
+		It seems that some people (mostly those, who are new to programming) are afraid of exploiting their nearly unlimited power over the small virtual world of the program, they write.
+		This makes them overly cautious, which slows down their development and prevents mistakes, that they could have learned from.
+		So this section is about being fearless.
+		Because, when programming, being fearless is easy, as this is an affair between only the programmer and her/his computer, which usually is not overly judgemental about some raised exceptions.
+
+		The first hint is for those pity souls, who have suffered the terror of ancient compiled languages, embedded systems withoud debug interface, JavaScript\footnote{Although the lack of a usable print function and the carefree inclusion of every thinkable feature or paradigma make JavaScript seem unusable and confusing to even the most intrepid Perl programmers, JavaScript can be a fun language that actually has some virtues, as Douglas Crockford explains~\cite{Crockford}.} or, the most abusive of all, MATLAB:
+		Print out debug information! Not only in Python, but in any reasonable language, this is actually easy.\\
+		For a quick and temporary debug output, one can easily use the {\normalfont \ttfamily print} function.
+		While debug messages, that are meant to stay in the source code, should be implemented with the excellent functionalities of the {\normalfont \ttfamily logging} module (as explained in section~\ref{logging}).\\
+		Printing debug messages is very handy to check, if a certain piece of code is executed, or if it is skipped due to maybe a condition or an exception.
+		It can be used to check if the computed data is as expected, by printing the data directly or some meta information like the output of {\normalfont \ttfamily len}, {\normalfont \ttfamily numpy.size} or {\normalfont \ttfamily dir}.
+		And of course debug messages can print status information like a progress bar, which indicates that the program is still alive.\\
+		Some programmers claim that nowadays, when debuggers are available even for high level languages like Python, printing messages for debugging is obsolete or even bad style.
+		Admittedly, the use of a debugger can replace a few debug messages, but by far not all of them (e.g. status messages or the logging messages that stay in the code).
+		And sometimes it is easier to just print a variable, then search for it in the memory dump of a debugger.
+		So debug messages are still a very helpful tool and one should not be afraid to use it.
+
+		Secondly, ''Try and error'' is a valid way of developing software.
+		Of course, doing something right, on the first attempt is very impressive and satisfying, but often, it is quicker to try someithing out and react to the error messages.
+		One might even learn a new thing or two, when hazarding making a mistake.\\
+		And usually, the risk of running erroneous development code is negligible, as long as it does not overwrite important data or crash programs, that run for productive purposes.
+		So as long as the developed software (including its data and other ressources like network servers) is sufficiently modularized, so that the development test runs can be separated from the productive execution of the software, ''Try and error'' is a formidable approach to solving problems in software development.\\
+		Be fearless.
+
+		And thirdly, have fun!
+		When programming, a programmer is constantly solving small problems, which on its own is hugely motivating.
+		But when she or he takes a step back and recognizes the complexity and elegance, that emerges from the combination of all these small solutions, the joy is almost beyond words.\\
+		On the other hand, one gets easily used to this motivation of steadily repeating successes, so that a problem, that cannot be solved rapidly, easily becomes discouraging.
+		In such a case, it is important to avoid spending too much time on feeling unproductive while trying to figure out a seemingly impossible solution.
+		First, one should check, if the problem can be divided into smaller subproblems, whose solution is more obvious.
+		If that is not possible, one should go on to solve a different problem and come back to the current problem later.
+		Sometimes before going on, it is necessary to program a workaround or an improvised solution for the current problem.
+		If a proper solution feels out of reach, the extra effort for such a workaround is worth the effort.
+		This break often allows to find a different approach to the problem or it at least gives some time to think about it, while not being in front of a keyboard and feeling urged to hack in a solution immediately.
+
+
 	\section{Maybe a list of common slogans}
 		TODO\\
 		explain what these slogans mean in practical use (or just remove this section)
