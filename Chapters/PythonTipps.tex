@@ -33,7 +33,7 @@
 			\item Do not guess!\\
 			      If choosing the proper action for a given piece of data is not a deterministic and reliable process, raise an error about ambiguous data.
 			      A potentially wrong interpretation of the data will lead to a misbehaving program, where the errors are spotted way further down the processing chain, than the place, where the errors have been made.\\
-			      Also a Complicated maze of conditional expressions, that just interprets some data, is tedious to program, hard to understand and unlikely to be maintained properly.
+			      Also a complicated maze of conditional expressions, that just interprets some data, is tedious to program, hard to understand and unlikely to be maintained properly.
 			\item Raise meaningful exceptions!\\
 			      In order to facilitate proper exception handling and maybe debugging aswell, do not just raise an {\normalfont \ttfamily Exception}.
 			      Please bother to at least raise a {\normalfont \ttfamily RuntimeError}, if it is not clear, which exception shall be raised.

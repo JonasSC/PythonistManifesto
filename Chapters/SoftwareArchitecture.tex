@@ -81,7 +81,7 @@
 		So it is a sensible choice to make the character object mutable.
 
 		If an object is only defined by its data, like for example a signal, it should be implemented as an immutable object.
-		Consider the following example for an explaination why:
+		Consider the following example for an explanation why:
 		\begin{minted}[gobble=3, tabsize=4]{python}
 			# mutable
 			loaded_signal = load_file(filename)
@@ -106,7 +106,7 @@
 
 		Returning data by calling a function with a reference to a mutable variable (return-by-call-by-reference) is a peculiar habit, that sprouted in the environment of software written in C.
 		In C, this is the easiest way to return multiple values with one function.
-		Furthermore, the explicit notation of pointers in C made it obvious that the variable would be modified by the function call.\\
+		Furthermore, the explicit notation of pointers in C makes it obvious that the variable would be modified by the function call.\\
 		In Python it is rather convenient to return multiple values with a tuple, while pointers are not exposed to the programmer.
 		So it is absolutely not necessary for a function to have the side effect of modifying one of its parameters.
 		If a mutable object shall be modified, it is cleaner to implement this modification in a method of its class, rather than an external function.
