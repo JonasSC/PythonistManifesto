@@ -157,6 +157,72 @@
 		This way, the method can encapsulate the implementation of the class, while an external function would rely on exposed internals of the class.
 
 
+	\section{Global state}
+		Global state is when mutable objects are accessible from several independent components of a software's source code.
+		The problem with such objects is, that changing one of them has consequences, that reach beyond the scope of the current component.
+		So the risk of undesired side effects is greatly increased.
+		To cope with these side effects, it is usually necessary to perform extensive checks, when accessing such a global object.
+		And when these checks fail, the resulting error is often hard to find and a lot of work to fix, because it involves many components of the software.
+
+		When thinking about global state, one is usually reminded of global variables and that they are considered to be evil.
+		They actually are, but also other malicious constructions exist, which create global state:
+		\begin{itemize}
+			\item Mutable singletons\footnote{Singletons are objects that are only instantiated once. When attempting to create another instance, one will only obtain the same instance, that was created before.}
+			\item Modules (since they are singletons)
+			\item File access
+		\end{itemize}
+
+		The classification of modules as harmful global state might need some explanation.
+		Most modules just provide functionality and are not meant to be modified, which means, that they do not share state between the components which use the same module, so all is well.
+		Other modules, like the {\normalfont \ttfamily atexit} module, do have functions, which change the state of that module, which requires some caution.
+		In case of the {\normalfont \ttfamily atexit} module, this is usually not critical, as other software components are not affected, when one component registers a function, that shall be executed, when the program terminates.\\
+		But there actually are negative examples for global state in modules.
+		One of these is the {\normalfont \ttfamily random} module, which allows a reinitialization of the global random number generator with its {\normalfont \ttfamily seed} function.
+		This design decision has probably been made, to facilitate the writing of simple scripts, but in more complex software, this function can easily be misused.
+		For example, when one component seeds the generator with a special value and expects a specific sequence of generated random numbers (this assumption is reasonable, as the generated numbers are only ''pseudo random'', which means that their generation follows a deterministic law).
+		If another component changes the state of the random number generator (e.g. by retrieving a number or by calling the global {\normalfont \ttfamily seed} function again), the assumptions of the first component about the generated sequence will be wrong.
+		To circumvent this problem, one should always create a local instance of the random number generator ({\normalfont \ttfamily random.Random()}), when the actual values of the generated numbers are of importance.\\
+		Another example of global state in modules is appending to {\normalfont \ttfamily sys.path}, which might be tolerable in trivial scripts, but is absolutely prohibited in even small software projects.
+
+		File access is also a common source of errors due to global state.
+		Especially with configuration files, it is likely, that different software components modify the same file, which can lead to race conditions or inconsistencies of loaded configuration parameters.
+		So it is advised to encapsulate the access to a certain file in a single component, as this makes it easy to avoid race conditions.
+		Furthermore, functions and classes should ask for all their parameters as arguments, rather than retrieving them from a global data source like the configuration.
+		This encourages a software design, in which all external parameters are loaded only once (maybe at the beginning of the software's execution).
+
+		There is even a more theoretical justification for avoiding global state, which has to do with provability.
+		Consider the following logical conclusion as an example for this:
+		\begin{equation}
+			\left.
+			\begin{aligned}
+				A \Rightarrow B\\
+				B \Rightarrow C
+			\end{aligned}
+			\right\} \Rightarrow \quad A \Rightarrow C
+		\end{equation}
+		This conclusion is only valid, when all objecs \(A\), \(B\) and \(C\) are the exactly the same throughout the whole set of formulas.
+		This requirement seems trivial, but with global state, it is easy to dissatisfy, as the following piece of code shall demonstrate:
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			threshold = 0	# a global variable
+			def A(parameter):
+				return parameter >= threshold
+		\end{minted}
+		When the value of the global variable changes, {\normalfont \ttfamily A} might still be the same instance, but from a mathematical point of view, it has become a different function, since it might yield a different result for the same parameter.
+		So testing, if the software works correctly, becomes extremely hard, because theoretically all conclusions, that are drawn from the test runs, have to be validated for every possible combination of values for the global variables, which is usually impossible.\\
+		The remedy for this problem is simply to make the global variable a parameter of the function.
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			def A(parameter, threshold=0):
+				return parameter >= threshold
+		\end{minted}
+		This way, the function always returns the same result for a given combination of arguments, so it remains the same function also in the mathematical sense.
+		This allows it to test the function like a mathematical function, which can usually be done without brute force testing all possible parameter combinations.
+
+		Functional programming languages like Haskell go to great lengths to avoid global state.
+		This makes programming in such languages very counterintuitive for programmers, who are only familiar with imperative programming languages like Python.
+		But since the lack of state makes functional programming languages very similar to mathematical formulas, it is much easier to apply the methods of proving mathematical theorems on programs in these languages.
+		Sometimes it is even possible to formally prove the correctnes of a given implementation.
+
+
 	\section{Design Patterns}
 		Design patterns are generic solutions to problems, that occur regularly during the design and implementation of software.
 		A surprising amount of research has been done to investigate the advantages and drawbacks of certain design patterns, so the established design patterns are often faster, easier to maintain and easier to extend than naive implementations.
