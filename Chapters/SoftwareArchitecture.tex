@@ -43,28 +43,72 @@
 		This break often allows to find a different approach to the problem or it at least gives some time to think about it, while not being in front of a keyboard and feeling urged to hack in a solution immediately.
 
 
-	\section{Maybe a list of common slogans}
-		TODO\\
-		explain what these slogans mean in practical use (or just remove this section)
-		\begin{itemize}
-			\item Do only one thing and do it well
-			\item Don't program a mathematical function yourself
-			\item If in doubt, leave it out
-			\item Program to an API, not an implementation
-			\item Explicit is better than implicit
-		\end{itemize}
+	\section{Programming slogans}
+		Just like in any other field, programming does also have its slogans, proverbs and milkbottle wisdoms, that are meant to convey the knowledge of an experienced programmer in the form of a catchphrase, that is easy to rembember.
+		Consequently, the person, who recites these slogans in the most self-indulgent manner, must clearly be the wisest and most experienced programmer, which is why this manual has to have a slogan section, too.
+		The following list only contains slogans, that are applicable to programming in Python, which allows to do without the all time classic ''Goto, considered harmful''.
 
+		\subsubsection{Do only one thing and do it well}
+			This is basically the software formulation of the ''divide and conquer'' proverb.
+			It means, that a complex system is best divided into separate components, in a way that each of these components has exactly one purpose, which it fullfills in the best way possible.
+			Of course it is possible to apply this division recursively and divide a full system into subsystems, which ultimately consist of such components.
+			Of course, the subsystems must be focused on a certain area of tasks aswell.\\
+			The advantage of this strategy is, that it makes the components easier to program, as they are targeted at a very specific problem.
+			Furthermore, since a component is the best available solution for a problem, there is no need to write a different component with the same purpose.
+			And since all subsystems and components have their own ''area of interest'', on which they work, in order to fullfill their purpose, they can be programmed in a way, that they are independent of other subsystems or components.
+			This makes it possible to instantiate them without instantiating too many other components as dependencies.
+			Without this independent instantiation, reusing or testing a component would not be practically possible.
+			And of course, once a better solution for a given problem is found, the respective component can be easily replaced without affecting other components.\\
+			Although it is not a single piece of software, the family of UNIX operating systems is a great example for the virtues of this slogan.
+			With its modular set of exchangeable kernels, libraries and tools, the UNIX operating systems have achieved a versatility and efficiency, that is unparalleled by any other operating system so far.
 
-	\section{Global state}
-		TODO\\
-		\begin{itemize}
-			\item global constants are good
-			\item global variables are bad
-			\item mutable singletons are bad, since they are global variables
-			\item modules are singletons, so don't change their state. Or don't rely on their state (e.g. the atexit module has to be changed when used).
-			\item IO is usually a global state
-			\item something about testability/provability and functional programming languages. (A function is expected to yield the same results for the same parameters. If it also depends on some global state, this expectation is not met.)
-		\end{itemize}
+		\subsubsection{Program to an API, not an implementation}
+			As the name implies, APIs are the interfaces between different pieces of code.
+			\begin{wrapfigure}{r}{0.52\textwidth}
+				\centering
+				\includegraphics[width=0.5\textwidth]{Images/CarHeater.png}
+				\caption[CarHeater]{When heating a car, the decision to rely on the implementation detail, that the catalytic converter removes all carbon monoxide from the exhaust gasses, usually yields results which are both dramatic and undesired. So it is preferable to stick to the documented features and use the car's heater.}
+			\end{wrapfigure}
+			Usually, there has been made at least a modest attempt to make the API versatile and easy to use and to document it sufficiently.
+			And because APIs are so well thought through, they are unlikely to change.
+			So when using a piece of software, it is reasonable to rely on the API and trust its documentation.
+			All the aforementioned points mostly do not apply to the implementations behind APIs.
+			That code tends to change regularly and its documentation is usually appalling, which provides unpromising conditions to depend on, when developing a software component.\\
+			So take for example a function, whose documentation claims that it returns a unique identifier.
+			When retrieving such an identifier, one can expect it to be unique, but all other assumptions are not valid, as they are not documented.
+			Neither can one assume, that the identifier values are produced in the same order, after the program has been restarted.
+			Nor is it allowed to make any assumptions about the type of the returned identifier.\\
+			If one relies on internal details of an API implementation, the program will work at first, but it is very likely, that it will behave peculiarly, once this implementation has changed.
+			Such errors are usually hard to find, as they often do not crash the program completely and the defective code is in a different area than the recent changes.
+
+		\subsubsection{Explicit is better than implicit}
+			This is one of the famous Python mantras.
+			It basically means, that one should produce clean and readable code by avoiding implicit assumptions.
+			The simplest example for this is passing arguments to a function as keyword arguments rather than positional arguments, when the number of arguments exceeds two.\\
+			But this mantra also refers to API design.
+			It is usually better to ask for every value explicitely, rather than guessing it from another source.
+			A good example for this is the implementation of a class.
+			A class should ask for every necessary parameter in its constructor, so that objects of that class are always fully initialized.\\
+			If a parameter is not passed via the constructor, but later given via a setter method, the programmer of that class can decide between two evils.
+			Either the object is not fully initialized, before that setter has been called, or the constructor tries to guess a reasonable value for that parameter.
+			Such guessing code is usually messy, not documented and incapable of guessing always right, which will eventually result in an error.
+			And, as the keen reader might have guessed by now, ''eventually'' is much worse in this context than ''always'', because such irregular errors are harder to find, to reproduce and it is more difficult to verify their absence through automated tests.\\
+			The clean way would be to ask for that parameter in the constructor and give it a default value.
+			Those default values are part of the API of a class, so it is specified explicitely, what value that parameter will have by default, rather than guessing the value implicitly.
+
+		\subsubsection{Don't program a mathematical function yourself}
+			Especially for Python, there are good libraries for almost any general problem available.
+			So it is not necesseary to program something as general as a common mathematical function on one's own.\\
+			With mathematical functions, the usual drawbacks of homebrew implementations are just suboptimal performance and maybe a bad API for that function.
+			This is not good, but certainly not critical.\\
+			The topic becomes more severe, when it comes to security relevant components like cryptography algorithms.
+			Here it is absolutely mandatory, to use an open implementation, that has been reviewed and tested by as many people as possible.
+			The ''security by obscurity'' approach of using a custom cryptography algorithm has nearly always proven to be insecure (and if there is an application, where it hasn't yet, it is just a matter of time until it does prove to be insecure...).
+
+		\subsubsection{If in doubt, leave it out}
+			If one is not sure, that a certain feature is needed, this feature should not be added to the software.
+			After a feature has been introduced, there is nearly always a component or a user that relies on it and thus makes it impossible to remove it, even if the feature is faulty or deprecated.
+			So adding a requested feature later on is usually easier than removing an unused feature, that one does not want to maintain anymore.
 
 
 	\section{Mutable vs. Immutable data types}
