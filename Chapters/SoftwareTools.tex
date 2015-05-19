@@ -14,11 +14,126 @@
 		TODO
 
 	\section{Version control systems}
-		TODO
+		Version control systems are mainly used for two purposes.
+		The first is, as the name implies, versioning the state of a project.
+		This is useful to track which feature has been added in which version and for going back forth between different versions of the project.
+		The second purpose of version control systems is to manage the collaboration between multiple developers.
+		For this it provides an easy way to convey the work of one contributor to the others.
+		Furthermore, it has means to resolve conflicts, when two developers have modified the same part of the project.
 
-		\subsection{Subversion}
-			TODO
+		Version control systems work best on text files, because they are capable of tracking the content of such files.
+		This allows storing the incremental changes to a file, which allows for a more fine grained versioning and more intelligent conflict resolution mechanisms (and it saves some disk space).
+		With binary files on the other hand, version control systems usually cannot interpret their content, which means, that in newer versions, the whole file is replaced, rather than just the modified lines.
+		This can consume a lot of disk space and it does not allow merging the changes of multiple developers.
+
+		The workflow with a version control system is generally the following:
+		\begin{enumerate}
+			\item Retrieve a local copy of the repository or update a fomally retrieved copy
+			\item Do some changes to that local copy
+			\item Commit these changes to the version control system
+			\item Convey the changes by pushing them to a centralized server
+		\end{enumerate}
+
+		Most version control systems fall into one of the two categories, ''distributed'' and ''centralized'' version control systems.
+		In centralized version control systems (like CVS or Subversion), the local copy of the project data is merely a working copy and not a repository on its own.
+		Each commit is directly uploaded to the repository on a centralized server, which means, that the last two points of the workflow enumeration are done in one step.\\
+		With a distributed version control system, the local copy is a full blown repository, in which the changes are first committed locally, before conveying these commits to other developers.
+		Collaboration between developers is also possible without a global repository, as the changes can also be downloaded from another developer's local repository.\\
+		The main advantage of centralized version control systems is, that their lack of features makes them easier to use.
+		Furthermore, the graphical user interfaces and plugins for file managers and IDEs\footnote{''Integrated Development Environment'', feature rich text editors for programming, that have been extended with capabilities for file and project management (e.g. Eclipse or Spyder)} tend to be more mature for common version control systems like Subversion.\\
+		Distributed version control systems usually have a steeper learning curve, but their capabilities are definitively worth the effort, as is explained in the ranting section~\ref{CentralizedVersionControlRant}.
+
+		Most version control systems allow ''branching'' a project's repository.
+		This means, that the project's state is copied and changes can be made to this copy, without affecting the main ''branch'' of the project.
+		Branching is useful for implementing and conveying experimental features, while still keeping and maintaining a stable version of the project.
+		After the feature has been fully implemented, its branch can be merged into the stable branch.\\
+		In a distributed version control system, the local copies are technically branches and uploading them to another repository (e.g. one on a centralized server) is a merging operation.
 
 		\subsection{git}
-			TODO
+			git might be the fastest and most mature distributed version control system.
+			It has proven its performance and project management capabilities in the development of the Linux kernel, where it has its origins.
+			But nowadays, git is being used by a huge number of other projects aswell.
+			Its development is also very active.
+
+			git is very rich in complicated features, which makes it easy to lose track, of what is currently going on.
+			So one has to decide carefully, when to use a graphical tool and when to fall back to the command line.
+			Plugins for IDEs and file manages are often limited by their user interface, which can be problematic in certain scenarios like resolving merge conflicts.
+
+			The documentation for git is very good, so querying the usage of a command via {\normalfont \ttfamily git COMMANDNAME --help} usually helps a lot.
+			Some tasks (like setting up certain things with the config) are more complicated, but good examples and HowTos can be found in the internet.\\
+
+			The following list introduces some of the most usual commands.
+			\begin{itemize}
+				\item {\normalfont \ttfamily git clone URL DIR} makes a local copy of the repository, that is found under {\normalfont \ttfamily URL}, in the local directory {\normalfont \ttfamily DIR}.
+				\item {\normalfont \ttfamily git status} and {\normalfont \ttfamily git log} print information about the repositories state. Graphical tools for this are {\normalfont \ttfamily gitk}, {\normalfont \ttfamily gitg} or {\normalfont \ttfamily qgit}.
+				\item {\normalfont \ttfamily git gui} shows a convenient GUI with a diff viewer, a file selector and a comment field, that is very useful, when selecting the modifications, that shall be put into a commit.
+				\item {\normalfont \ttfamily git pull origin} pulls the commits from the branch, from which the local repository has been cloned. When {\normalfont \ttfamily origin} is replaced with a different branch name, the commits will be pulled from there.
+				\item {\normalfont \ttfamily git push origin} uploads the pending local commits to the repository, from which the local repository has been cloned. When {\normalfont \ttfamily origin} is replaced with a different branch name, the commits will be pushed there.
+				\item {\normalfont \ttfamily git checkout NAME} switches to the given branch, if {\normalfont \ttfamily NAME} is a branch. If {\normalfont \ttfamily NAME} is a file, that file will be checked out, which means, that it will be reset to the state of the last commit.
+				\item {\normalfont \ttfamily git merge BRANCH} merges the branch with the name {\normalfont \ttfamily BRANCH} into the current branch.
+				\item {\normalfont \ttfamily git branch NAME -t BRANCH} creates a new branch with the name {\normalfont \ttfamily NAME}, whose origin is the branch {\normalfont \ttfamily BRANCH}.
+				\item {\normalfont \ttfamily git stash} is a feature to stash and restore modifications without commiting them. Many git commands require a repository without pending modifications. So it is sometimes necessary to stash modifications, that are not yet complete enough for a commit.
+				\item {\normalfont \ttfamily git mergetool} is the first aid in case of a merge conflict, that cannot be resolved automatically. It starts a diff viewer with an editor (which has to be specified in git's config), with which the conflict shall be resolved manually.
+				\item {\normalfont \ttfamily git format-patch -n 13} exports the last 13 commits as patches (the number can be changed). This can be a convenient way to share a few very specific commits with other developers. But usually, it is better to convey modifications with the {\normalfont \ttfamily push} and {\normalfont \ttfamily pull} commands.
+				\item {\normalfont \ttfamily git rebase -i HEAD~13} allows rearranging, combining and deleting the last 13 commits (the number can be changed). Be careful to use this feature only for commits, that have not yet been conveyed to other repositories, as this will likely result into merge conflicts.
+			\end{itemize}
+
+		\subsection{Subversion}
+			Subversion is probably the most advanced centralized version control system.
+			It is widely used in many projects and actively developed.
+
+			As the capabilities of centralized version control systems are fairly limited, they can be easily represented in a graphical user interface.
+			The plugin for the Windows Explorer ''TortoiseSVN'' is for example very mature, rich in features and yet easy to use.
+			On Linux, the plugin ''RabbitVCS'' is well integrated into some common file managers.
+			It has similar features like TortoiseSVN and is also available for other version control systems.
+			For the larger IDEs, there are also plugins like ''Subversive'' for Eclipse.
+
+			When creating a new project with Subversion or migrating an existing project to be controlled with it, special care needs to be taken with the directory hierarchy.
+			Counterintuitively, Subversion represents branches and tags by files and directories, rather than managing them internally.
+			This makes it necessary to allocate one directory for branches and one for tags, when creating a new repository.
+			If this is omitted, the project cannot be branched or tagged.\\
+			A common method is to create a directory called ''trunk'', which contains the main branch, in which all contributions are combined into a complete and stable version of the project.
+			A directory with the name ''branch'' usually contains subdirectories, in which the branches are stored.
+			Similarly, the tagged versions are saved to their respective subdirectory in the directory called ''tag''.\\
+			Also it has to be made sure, that the access to the branch directory is sufficiently permissive, in order to avoid, that developers mess up the main branch in trunk with huge or unstable commits, because they cannot create a branch for the development of their feature.
+
+		\subsection{A rant about centralized version control systems}
+			\label{CentralizedVersionControlRant}
+			Centralized version control systems have some drawbacks when it comes to managing projects with multiple developers, so it is strongly advised to use a distributed version control system whenever possible.
+			To justify this claim, these drawbacks are listed in this section:
+
+			\paragraph{Encouragement of huge commits}~\\
+				In a centralized version control system, all commits are directly conveyed to all other developers.
+				This encourages to only commit, when a feature is fully implemented and reasonably stable, which usually leads to huge commits with a lot of merge conflicts.\\
+				With distributed version control systems on the other hand, the commits are only visible to other developers, after they have been pushed to a shared repository.
+				This way, the developer is encouraged to make small commits, that track the development of the feature in a very fine grained way, so they are easy to merge and give a detailed history of the project's state.\\
+				A way to get around this problem, while still using a centralized version control system, is the excessive use of branches, which can be tricky, if the repository is set up carelessly.
+
+			\paragraph{Only global sharing commits}~\\
+				A distributed version control system allows pulling changes from any other developer, who has a copy of the respective repository.
+				So it is easy and recommended to share newly developed features first within a small group and convey them only to the global repository, after the feature is reasonably stable.\\
+				In a centralized version control system, all commits are global, so the bleeding edge development is easily mixed with product maintenance.
+				This scheme risks the stability of the product, as experimental features are likely to spill over to the production version of the project.\\
+				So the product maintenance must be explicitly separated from the development of new features by branching.
+				This is also recommended with distributed version control systems, but because of the aforementioned ability to share new developments non-globally, the contributions, that are commited to the global repository, tend to have a much higher quality and stability.
+
+			\paragraph{Overwriting updates with outdated versions}~\\
+				An inherent advantage of distributed version control systems is, that conflicts only occur between changes, that have been commited to version controlled repositories, which gives the version control system a lot more information, that is helpful for resolving such conflicts automatically.\\
+				In a centralized version control system, these conflicts occur between committed changes and uncommitted changes in a non-updated local copy.
+				This usually leads to the current version of the file being overwritten to a non-updated but more recently modified version.
+				So the changes from the developer, who has commited first, are lost.\\
+				Common remedies for this problem are reducing the number of persons, who are allowed to commit, or asking everybody, if there are uncommited changes, before commiting.
+				Both of them are completely ridiculous, as they undermine the capabilities of version control systems for project management.\\
+				The correct way to get around these conflict problems, is to use branches, in a way, that emulates the scheme of distributed version control systems, which means creating a branch for each developer or the development of each feature.
+
+			\paragraph{Problems with restrictive administrator privileges}~\\
+				If a version control system shall be used to distribute code between multiple developers, a centralized version control system always needs a server.
+				This server needs an administrator, who does the administration and maintenance of the repository, which can include routine tasks like creating or merging branches, depending on the file access permissions of the server.
+				Usually not every developer has permissive access to the files on the server, which is where the problems start, since they have to bother the administrator on a very regular basis with these routine tasks.\\
+				Distributed version control systems do not necessarily need a server, as the developers can pull updates directly from each other.
+				Nevertheless, a central main repository on a server is usually useful\footnote{This server does not need to be a specialized version control server, as a simple shared directory is often sufficent.}.
+				For this central repository, the same problems with sparsely granted administration rights arise, just like with a centralized version control system.
+				But the developer's local copies of that repository offer the full capabilities of the version control system to each developer, which includes unlimited branching and merging.
+				Furthermore, the developers can share their contributions through their local copies, without relying on the access permissions of the central server.
+				This allows to set the administrator privileges much more restrictively, without inhibiting the productivity of the developers.
 
