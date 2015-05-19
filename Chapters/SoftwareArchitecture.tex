@@ -306,7 +306,7 @@
 							o(self, new_value)
 
 				sensor = SensorDriver()
-				user_interface = UserInterface(sensors=sensor)
+				user_interface = UserInterface(sensors=[sensor])
 			\end{minted}
 			If many sensor drivers have to be implemented, the programming overhead of the Observer Pattern can be reduced, by sharing the necessary code trough inheritance.
 			The advantages of this implementation become obvious, when the performance, the maintenance and possible extensions are considered:
@@ -318,7 +318,7 @@
 			\end{itemize}
 
 			When the observing objects (in the example, this is the user interface) are destroyed, it is necessary to delete the callbacks that have been passed to the AddObserver-method aswell.
-			So it is necessary to implement a RemoveObserver-method aswell.
+			So it is required to implement a RemoveObserver-method aswell.
 			\begin{minted}[gobble=4, tabsize=4]{python}
 				class SensorDriver(object):
 					...

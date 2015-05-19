@@ -411,7 +411,7 @@
 					def __init__(self, unbound_method):
 						pass
 
-					def __get__(instance, instance_type):
+					def __get__(instance, owner):
 						def replacement_function(*args, **kwargs): # changes nothing
 							return self.__unbound_method(instance, *args, **kwargs)
 						return replacement_function
