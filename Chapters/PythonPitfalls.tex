@@ -169,10 +169,10 @@
 
 		Invoking the garbage collector with the command {\normalfont \ttfamily gc.collect()} returns the number of deleted objects.
 		If this number is not zero, it shows that the implementation contains circular references and maybe a memory leak.
-		So showing this number in a debug message might help increasing the performance and stability of the program.\\
+		So showing this number in a debug message might help the programmer to improve the performance and the stability of the program's implementation.\\
 		If the number of deleted objects is always zero, the invokation of the garbage collector can of course be omitted.
 
-		Python has a module called {\normalfont \ttfamily weakref}, which can be used to create weak references that do not affect an object's reference counter.
+		Python has a module called {\normalfont \ttfamily weakref}, which can be used to create weak references, that do not affect an object's reference counter.
 		When using a weak reference, it is not assured, that the reference is still valid, as the object could have been deleted.
 		But since weak references cannot be used to keep unreachable objects alive, replacing an ordinary (strong) reference with a weak one can break circular references.
 

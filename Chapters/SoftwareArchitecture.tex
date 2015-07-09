@@ -12,10 +12,10 @@
 		So this section is about being fearless.
 		Because, when programming, being fearless is easy, as this is an affair between only the programmer and her/his computer, which usually is not overly judgemental about some raised exceptions.
 
-		The first hint is for those pity souls, who have suffered the terror of ancient compiled languages, embedded systems withoud debug interface, JavaScript\footnote{Although the lack of a usable print function and the carefree inclusion of every thinkable feature or paradigma make JavaScript seem unusable and confusing to even the most intrepid Perl programmers, JavaScript can be a fun language that actually has some virtues, as Douglas Crockford explains~\cite{Crockford}.} or, the most abusive of all, MATLAB:
+		The first hint is for those pity souls, who have suffered the terror of ancient compiled languages, embedded systems without debug interface, JavaScript\footnote{Despite  the lack of a usable print function and the carefree inclusion of every thinkable feature or paradigma make JavaScript seem unusable and confusing to even the most intrepid Perl programmers, JavaScript can be a fun language that actually has some virtues, as Douglas Crockford explains~\cite{Crockford}.} or, the most abusive of all, MATLAB:
 		Print out debug information! Not only in Python, but in any reasonable language, this is actually easy.\\
 		For a quick and temporary debug output, one can easily use the {\normalfont \ttfamily print} function.
-		While debug messages, that are meant to stay in the source code, should be implemented with the excellent functionalities of the {\normalfont \ttfamily logging} module (as explained in section~\ref{logging}).\\
+		While debug messages, which are meant to stay in the source code, should be implemented with the excellent functionalities of the {\normalfont \ttfamily logging} module (as explained in section~\ref{logging}).\\
 		Printing debug messages is very handy to check, if a certain piece of code is executed, or if it is skipped due to maybe a condition or an exception.
 		It can be used to check if the computed data is as expected, by printing the data directly or some meta information like the output of {\normalfont \ttfamily len}, {\normalfont \ttfamily numpy.size} or {\normalfont \ttfamily dir}.
 		And of course debug messages can print status information like a progress bar, which indicates that the program is still alive.\\
@@ -52,7 +52,7 @@
 			This is basically the software formulation of the ''divide and conquer'' proverb.
 			It means, that a complex system is best divided into separate components, in a way that each of these components has exactly one purpose, which it fullfills in the best way possible.
 			Of course it is possible to apply this division recursively and divide a full system into subsystems, which ultimately consist of such components.
-			Of course, the subsystems must be focused on a certain area of tasks aswell.\\
+			And evidently, the subsystems must be focused on a certain area of tasks aswell.\\
 			The advantage of this strategy is, that it makes the components easier to program, as they are targeted at a very specific problem.
 			Furthermore, since a component is the best available solution for a problem, there is no need to write a different component with the same purpose.
 			And since all subsystems and components have their own ''area of interest'', on which they work, in order to fullfill their purpose, they can be programmed in a way, that they are independent of other subsystems or components.

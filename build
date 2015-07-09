@@ -20,4 +20,5 @@ rm -f $file.log
 rm -f $file.out
 rm -f $file.toc
 rm Chapters/*.aux
+rm -rf _minted-$file
 
