@@ -49,6 +49,7 @@
 		The following list only contains slogans, that are applicable to programming in Python, which allows to do without the all time classic ''Goto, considered harmful''.
 
 		\subsubsection{Do only one thing and do it well}
+			\label{OneThing}
 			This is basically the software formulation of the ''divide and conquer'' proverb.
 			It means, that a complex system is best divided into separate components, in a way that each of these components has exactly one purpose, which it fullfills in the best way possible.
 			Of course it is possible to apply this division recursively and divide a full system into subsystems, which ultimately consist of such components.
@@ -158,6 +159,7 @@
 
 
 	\section{Global state}
+		\label{GlobalState}
 		Global state is when mutable objects are accessible from several independent components of a software's source code.
 		The problem with such objects is, that changing one of them has consequences, that reach beyond the scope of the current component.
 		So the risk of undesired side effects is greatly increased.
@@ -345,4 +347,71 @@
 		\subsection{Other Patterns}
 			The Observer Pattern is so cool, you can conquer the world just with that.
 			But still, some more patterns would be helpful, so: TODO
+
+
+	\section{Code Smells}
+		Code smells are not really bugs, but indications, that something is probably wrong.
+		A piece of software, which is bug-free, but whose source is contaminated with code smells still runs cleanly.
+		Nevertheless it is likely, that future modifications of the source code will break something.\\
+		This section lists examples of common code smells and the damage, they will probably cause.
+		Most of these examples are taken from a great talk by Nina Zakharenko, in which she describes the distress, in which a developer manoeuvres himself by working around an issue, rather than fixing it~\cite{Zakharenko}.
+
+		\subsection{Circular dependencies}
+			Often, circular dependencies between modules are not critical in Python.
+			But sometimes, a dependency circle has than to be broken, by importing one of the modules inside a function.
+			The background of this topic is being discussed in section~\ref{CircularImports}.
+
+			This is usually an indication for a bad code structure, overly large modules or a more generally inept distribution of code into multiple source files.
+
+			Overly large modules or a inept distribution of code are usually easy to fix.
+			Just make use of Python's powerful module system and group the code elements, that really belong together in a package or even a single source file, while avoiding to mash up independent pieces of code.
+			The benefits of this method are, that this allows the reuse of that code in other parts of the software, facilitates testing of the software and avoids circular dependencies.
+
+			Fixing a bad code structure generally requires more work, that does not only involve moving code between source files without modifying it, but it also includes actual refactoring of the source code.\\
+			An example for a such bad code structure would be a decorator, that depends on the code elements (e.g. classes), which it decorates.
+			It becomes immediately obvious, that such a decorator cannot be used anywhere else, but for this special purpose.
+			So generally, such code structures sacrifice generality of the code (most often unnecessarily).
+			And this makes testing the software a veritable mess, as the code cannot be tested intependently.
+
+		\subsection{Side effects of imports}
+			Technically, there is no difference between a Python script and a module.
+			But while a script initializes some objects, works with them and then exits, a module is usually imported at the initialization of a software and remains alive, as long as the Python interpreter is running.
+
+			Often, projects start as a small Python script, which is merely a proof of concept.
+			These scripts then tend to evolve to more complex programs, whose source code is distributed into multiple modules.
+			When refactoring a script, in order to split it into modules, the hardest part is to avoid the global variables, that have not been a problem in the script.
+			This makes it necessary to replace the global variables by new arguments in functions and new constructor parameters in classes.
+
+			Writing a module with global variables is highly discouraged, since this unnecessarily limits the reuse of the code and leads to seemingly non-deterministic behaviour.
+			This is discussed in section~\ref{GlobalState}.
+
+		\subsection{Excessively long functions}
+			Usually, there are two reasons for excessively long functions or methods.
+			One is factory code, which is long, because it has to initialize a lot of objects.
+			Factory code is very simple, because it rarely contains contitional executions or loops, so the excessive length here is usually not a problem and often unavoidable.
+			The other reason is bad software design.
+
+			The non-factory code is the part, where the program's magic happens.
+			It is likely that this code is very complex, due to loops and the sharing of data between multiple parts of the software.
+			So it is strongly recommended, to divide the code into small bits (functions, classes), which perform only one task (see section~\ref{OneThing} for more information).
+
+			Small functions are easier to write and understand.
+			And their focus on one task, makes them less specific to one part of the software, which might allow using them somewhere else as well.
+
+		\subsection{Copy and paste}
+			Duplicated code is a mess.
+			Changing it, requires modifications in multiple parts of the source code.
+			Reusing components is confusing, because it's unclear, which copy is to be used.
+			And it makes the source code unnecessarily long.
+
+			Copying code is a clear indication, that the source code is not modularized properly.
+			Instead of duplicating code, move that code into a separate function and use that function instead of the duplicates.
+
+		\subsection{The necessity to run the garbage collector}
+			This might be a Python specific code smell.
+			And sometimes it is also very hard to avoid depending on the garbage collector.
+
+			Python handles most of its memory management with reference counting, which is simple and efficient.
+			But in some cases, like circular references (see section~\ref{GarbageCollection}), the reference counting hits its limits and the garbage collector has to be invoked.
+			Apart from the performance penalties, that come with the necessity to run the garbage collector, circular references are an indication for incoherent dependencies between objects.
 

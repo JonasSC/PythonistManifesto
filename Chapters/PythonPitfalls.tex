@@ -37,6 +37,7 @@
 			So it must be avoided, that a file name has the same name as a function, for example by combining multiple functions in one file and choosing a meaningful name for the group of functions as the file name.
 			For very small functions (and very, very small numbers of functions), it might even be okay to define them in the \_\_init\_\_.py file.
 
+			\label{CircularImports}
 			If two or more modules import each other, it is impossible, that each one of these modules is imported completely, before continuing with importing the other modules.
 			This means, that during the import, these circularly dependent modules cannot provide their full functionality.\\
 			Circular module dependencies are not a problem in Python, as long as the functionalities from the other module are not required during the import.
