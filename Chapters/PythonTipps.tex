@@ -41,14 +41,64 @@
 			      There are many more predefined exceptions listed in the Python documentation.
 			      If they are not specific enough, it is possible to define custom errors by implementing a class that inherits from {\normalfont \ttfamily BaseException}.
 			\item Catch exceptions with precision!\\
-			      Don't just program a general {\normalfont \ttfamily try ... except} block to mute some error message.
-			      Maybe , there are unsuspected exceptions, that are raised inside the {\normalfont \ttfamily try} block, which are then masked, because the {\normalfont \ttfamily try} block just catches any exception.
+			      Don't just program a general {\normalfont \ttfamily try...except} statement to mute some error message.
+			      Maybe, there are unsuspected exceptions, that are raised inside the {\normalfont \ttfamily try} block, which are then masked, because the {\normalfont \ttfamily try} block just catches any exception.
 			      This again leads to errors, that occur later than when they happen.\\
 			      So at least specify, which type of exception shall be caught, by naming the class in the {\normalfont \ttfamily except} block.
-			      It is possible to catch different types of exceptions, by appending multiple {\normalfont \ttfamily except} blocks to one {\normalfont \ttfamily try} block.\\
-			      One can also get the object of the raised exception by typing ''{\normalfont \ttfamily except EXCEPTION\_CLASS as e}''.
-			      This allows a further disambiguation of the caught exception, for example by parsing its error message, and reraising the exception again, when it shall not be caught.
+			      The code example below shows how to catch only specific exceptions.\\
+			      In order to avoid masking unexpected exceptions, it is good practice to keep the {\normalfont \ttfamily try} block as short as possible and put everything, that depends on the successful execution of the suspicious command, in an {\normalfont \ttfamily else} block.
 		\end{itemize}
+
+		The following code example describes the blocks, in which the exceptions are handled.
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			try:
+				# exceptions, that are raised while executing this block, are
+				# handled by the following blocks, instead of crashing the program.
+			except:
+				# this block is executed, when an exception is raised
+				# multiple except blocks are possible, in order to allow specific
+				# handling of certain exception classes.
+			else:
+				# this block is executed after the try block, when no exception
+				# has been raised.
+			finally:
+				# this block is executed after all other blocks, independently
+				# of any exceptions, that have or have not been raised in any of
+				# the other blocks (not only in the try block).
+		\end{minted}
+
+		It is possible to specify the class of the exception, which shall be handled by an {\normalfont \ttfamily except} block.
+		It is also possible to store the raised exception in a variable, which allows further disambiguation of the caught exception, for example by parsing its error message, and reraising the exception again, when it shall not be caught.
+		\begin{minted}[gobble=3, tabsize=4]{python}
+			try:
+				...
+			except RuntimeError:
+				# this block is executed, when a RuntimeError has been raised.
+			except (IOError, ValueError):
+				# this block is executed, when an IOError or a ValueError has
+				# been raised.
+			except (IndexError, AttributeError) as e:
+				# this block is executed, when an IndexError or an AttributeError
+				# has been raised. The variable 'e' contains the object of the
+				# exception.
+			except BaseException as e:
+				# this block is executed, when an error of any type (since all
+				# exceptions are subclasses of BaseException) has been raised,
+				# which has not been handled by the above except blocks. The
+				# variable 'e' contains the object of the exception.
+			except:
+				# this is a more concise version of the above block, when no
+				# reference to the exception object is needed. In this example,
+				# this block will never be executed, since all exceptions are
+				# handled by the BaseException block.
+		\end{minted}
+
+		It is not necessary to catch every possible exception, when writing a {\normalfont \ttfamily try...except} statement.
+		So general {\normalfont \ttfamily except} blocks, like the last two of the example above are purely optional.
+		When there is no {\normalfont \ttfamily except} block, that handles the raised exception, this exception crashes the program, like there was no {\normalfont \ttfamily try} block around it.
+		This is usually the desired behaviour in the case of an unexpected exception.\\
+		It is also possible to write a {\normalfont \ttfamily try...finally} statement, without any {\normalfont \ttfamily except} blocks.
+		This can for example be useful, to close open file handles, even when an exception is raised.
 
 
 	\section{Neat modules in Python's standard library}
