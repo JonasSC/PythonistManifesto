@@ -610,38 +610,21 @@
 		And Python practices this art rather admirably.
 
 		Even Python did not dare to impose a fully unified coding style on the programmer, which means that certain code constructions can be written in different ways.
-		Some best practices for programming in Python are compiled in PEP8~\cite{PEP8}.\\
-		The reasons for most of the recommendations in PEP8 are thoroughly explained, so it is best to follow them.
+		Some best practices for programming in Python are compiled in PEP~8~\cite{PEP8}.\\
+		The reasons for most of the recommendations in PEP~8 are thoroughly explained, so it is best to follow them.
 		Other recommendations are just a matter of taste.
-		Since many other projects are programmed in compliance with PEP8, it is good to follow these recommendations aswell, just for the sake of a recognizable programming style.
+		Since many other projects are programmed in compliance with PEP~8, it is good to follow these recommendations aswell, just for the sake of a recognizable programming style.
 
-		But there are two issues, in which this manual recommends a different coding style than PEP8:
+		Some points of PEP~8 are an issue of discussion though:
 		\begin{itemize}
-			\item Feel free to exceed a line length of 79 characters, if it improves the readability of the code.\\
+			\item Feel free to exceed a line length of 79 characters, if it improves the readability of the code.
 			      Since many programmers no longer use command line editors on small screens with a small resolution, the 79 character limit seems a bit strict and old fashioned.
-			      It is still a good guideline to split a function call or a string to multiple lines, when it exceeds this threshold, but in some cases (like heavily indented blocks), a relaxed adherence to the 79 character rule can significantly improve the readability of the code.
-			\item Please use tabs for indentation!\\
-			      With a tab, the indentation is only one character per level, which is easy to maintain.
-			      When manually indenting or unindenting code with whitespaces, it happens easily, that one whitespace is forgotten or too much.
-			      This mistake cannot be discovered as easily as with tabs, where one character is much wider.
-			      Since Python uses the indentation level for assigning code to code blocks, an indentation mistake will break the program.\\
-			      Furthermore most editors allow specifying the width of a tab in their settings.
-			      This way, each programmer can decide independently, how steeply the indentation shall be displayed.
+			      It is still a good guideline to split a function call or a string to multiple lines, when it exceeds this threshold, but in some cases (like heavily indented blocks), a relaxed adherence to the 79 character rule can significantly improve the readability and even the quality of the code, as Raymond Hettinger pointed out~\cite{HettingerPEP8}.
+			\item The indentation with four spaces is messy and, with inappropriate text editors, even painful.
+			      Nevertheless, if the written code shall be published, it is better to change to a decent text editor, than to switch to an indentation with tabs.
+			      Python is extremely fussy about its indentation characters and since most Python source code is indented with four spaces, it is best to obey that convention.
+			      Otherwise, developers, who are new to the project, are likely to introduce errors, by assuming, that the code was indented with four spaces.\\
+			      The general opinion in discussions seems to be, that although many people prefer tab indentation over space indentation, consistency is valued much higher than personal preference on that topic~\cite{TabsVsSpaces}.
+			      Jamie Zawinski even gives some technical reasons for avoiding tabs in source code documents~\cite{Zawinski}.
 		\end{itemize}
-
-		This manual even recommends using tabs for indentation and whitespaces for aligning code, which can result in a mixture of tabs and spaces at the beginning of a line of code.
-		PEP8 will probably not agree with this, but this case is not mentioned there.\\
-		The following code gives an example, how this is meant (the arrows and u-shaped-thingys are tabs and spaces):
-		\begin{minted}[gobble=3, tabsize=4, showspaces, showtabs]{python}
-			def my_function(with_many_arguments,
-			                that_are_split,
-			                into_multiple_lines):
-				x = (with_many_arguments,
-				     123,
-				     456)
-		\end{minted}
-		In this example, the indentation is done with tabs, while the alignment of the function arguments of {\normalfont \ttfamily my\_function} and the tuple elements of {\normalfont \ttfamily x} are aligned with spaces.
-		There are two advantages of the alignment with spaces.
-		First, a perfect alignment is always possible, while with tabs, the alignment can only be done in coarse steps.
-		And second, the alignment becomes independent of how wide a tab is set to be in the respective editor.
 
